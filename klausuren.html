@@ -1,0 +1,38 @@
+
+<html lang="en" dir="ltr">
+
+<head>
+    <meta charset="utf-8">
+    <title>Student - Home</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="database.js"></script>
+</head>
+
+<body>
+    <h1 class="header">Willkommen, <span id="studentname"></span></h1>
+    <hr><br>
+    <h2>Ihre Fächer</h2>
+    <form action="">
+        <label for="studiengang">Studiengang:</label>
+        <select name="studiengang" id="studiengang">
+            <option value="IB">IB</option>
+            <option value="CSB">CSB</option>
+            <option value="IMB">IMB</option>
+            <option value="UIB">UIB</option>
+        </select>
+        <br><br>
+    </form>
+    <table id="faecher">
+        <th>Fach</th>
+        <th>Angemeldet</th>
+    </table>
+    <br><br><br>
+    <input id="submitbu" name="submit" value="Auswahl speichern" type="button" />
+
+    <script type="text/javascript">
+        window.onload = connect_to_db();
+        get_faecher_from_studiengang('IB');
+    </script>
+</body>
+
+</html>
