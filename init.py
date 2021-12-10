@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
-from flask import Flask
+from flask import Flask, request
 import pymongo
 from pymongo import MongoClient
-
-import os
 
 """
 ################################################
@@ -32,30 +30,43 @@ class DB:
 """
 
 def readhtml(filename):
-    data = open(filename, "r")
-    str  = data.read()
+    data     = open(filename, "r")
+    str      = data.read()
     data.close()
     return str
-
 
 app = Flask(__name__)
 
 @app.route("/")
-def init1():
+def init():
     return readhtml('login.html')
 
+@app.route("/validate", methods=['POST'])
+def validate():
+    name = ""
+    pw   = ""
+
+    if request.method == 'POST':
+        name = request.form[ 'email' ]
+        pw   = request.form[ 'passwd' ]
+        # suche in db nach email und check ob passwort stimmt und rolle
+        # wenn email net da ist kommt meldung zum regisitrieren
+        # wenn ja, dann entscheide nach rolle und leite weiter zu prof oder student
+        return 'validating'
+
+
 @app.route("/student")
-def init2():
+def student():
     return readhtml('student.html')
 
 
 @app.route("/noteneinsicht")
-def init3():
+def noteneinsicht():
     return readhtml('noteneinsicht.html')
 
 
 @app.route("/klausuren")
-def init4():
+def klausuren():
     return readhtml('klausuren.html')
 
 
