@@ -1,0 +1,45 @@
+body{
+    background-color: seashell;
+    font-family: Arial;
+}
+#faecherTabelle {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+#faecherTabelle th {
+    background-color: #4CAF50;
+    color: white;
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#faecherTabelle td {
+    border: 1px solid #ddd;
+    padding: 8px;
+}
+
+#ausführen1 {
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    padding: 10px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin: 4px 2px;
+    cursor: pointer;
+}
+#ausführen2 {
+    background-color: red;
+    border: none;
+    color: white;
+    padding: 10px 32px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 12px;
+    margin: 4px 2px;
+    cursor: pointer;
+}

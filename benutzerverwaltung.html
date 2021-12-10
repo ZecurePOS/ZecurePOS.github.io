@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale =1.0">
+    <link type="text/css" rel="stylesheet" href="benutzerverwaltungStyle.css">
+    <title>Secure POS</title>
+</head>
+<body>
+<header>
+    <h1>Benutzer Verwaltung</h1>
+</header>
+<form method="get" action="post">
+    <fieldset>
+        <legend>Benutzer</legend>
+        <table id="benutzerTabelle">
+            <tr>
+                <th>Benutzername</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td></td>
+                <td><select name="actions" id="actions">
+                    <option value="" disabled selected hidden>Wählen Sie aus...</option>
+                    <option>Role zuweisen</option>
+                    <option>Passwort ersetzen</option>
+                    <option>Löschen</option>
+                </select></select></td>
+            </tr>
+        </table>
+    </fieldset>
+    <br>
+    <button name="submitButton" tpye="submit" id="ausführen1">ausführen</button>
+    <button name="submitButton" tpye="submit" id="ausführen2">abbrechen</button>
+</form>
+</body>
+</html>
