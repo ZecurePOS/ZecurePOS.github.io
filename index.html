@@ -13,33 +13,84 @@
         <main>
             <fieldset>
                 <legend>Login</legend>
-                <form method="post" action=""> <!-- action muss noch angepasst werden -->
-                    <table>
-                        <tr>
-                            <td>
-                                <label for="user">Benutzer:</label>
-                            </td>
-                            <td>
-                                <input name="user" type="text" size="10" maxlength="20" required=true>	
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label for="passwd">Passwort:</label>
-							</td>
-							<td>
-								<input name="passwd" type="password" size="10" maxlength="20" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-							</td>
-							<td>
-								<button name="submitButton" tpye="submit">Anmelden</button>
-							</td>
-						</tr>
-					</table>
-				</form>
+				<div id="logindiv">
+					<form method="post" id="login" action=""> <!-- action muss noch angepasst werden -->
+						<table>
+							<tr>
+								<td>
+									<label for="user">Benutzer:</label>
+								</td>
+								<td>
+									<input name="user" type="text" size="10" maxlength="20" required=true>	
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<label for="passwd">Passwort:</label>
+								</td>
+								<td>
+									<input name="passwd" type="password" size="10" maxlength="20" required=true>
+								</td>
+							</tr>
+							<tr>
+								<td>
+								</td>
+								<td>
+									<button name="submitButton" tpye="submit">Anmelden</button>
+								</td>
+							</tr>
+						</table>
+					</form>
+				</div>
+			</fieldset>
+			<fieldset>
+				<legend>Registrieren</legend>
+					<div id="registerdiv">
+						<form method="post" id="register" action=""> <!-- action muss noch angepasst werden -->
+							<table>
+								<tr>
+									<td>
+										<label for="user">Benutzername:</label>
+									</td>
+									<td>
+										<input name="user" type="text" size="10" maxlength="20" required=true>	
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label for="user">Email:</label>
+									</td>
+									<td>
+										<input name="user" type="email" size="10" maxlength="50" required=true>	
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label for="passwd">Passwort:</label>
+									</td>
+									<td>
+										<input name="passwd" type="password" size="10" maxlength="20" required=true>
+									</td>
+								</tr>
+								<tr>
+									<td>
+										<label for="passwd">Passwort wiederholen:</label>
+									</td>
+									<td>
+										<input name="passwd" type="password" size="10" maxlength="20" required=true>
+									</td>
+								</tr>
+								<tr>
+									<td>
+									</td>
+									<td>
+										<button name="submitButton" tpye="submit">Registrieren</button>
+									</td>
+								</tr>
+							</table>
+						</form>
+					</div>
+				</fieldset>
 			</fieldset>
 		</main>
 		<div>
