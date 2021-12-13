@@ -2,24 +2,24 @@ body{
     background-color: seashell;
     font-family: Arial;
 }
-#benutzerTabelle {
+#benutzerTabelle, #faecherTabelle, #notenTabelle, #sitemap {
     border-collapse: collapse;
     width: 100%;
 }
 
-#benutzerTabelle th {
+#benutzerTabelle th, #faecherTabelle th, notenTabelle th, #sitemap th {
     background-color: #4CAF50;
     color: white;
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-#benutzerTabelle td {
+#benutzerTabelle td, #faecherTabelle td, #notenTabelle td, #sitemap td  {
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-#ausführen1 {
+#ausfuehren {
     background-color: #4CAF50;
     border: none;
     color: white;
@@ -31,7 +31,7 @@ body{
     margin: 4px 2px;
     cursor: pointer;
 }
-#ausführen2 {
+#abbrechen {
     background-color: red;
     border: none;
     color: white;
@@ -48,7 +48,6 @@ body{
     position: fixed;
     right: 80px;
     top: 20px;
-    /*padding: 15px 20px 15px 20px;*/
     background-color: red;
     border: none;
     color: white;
