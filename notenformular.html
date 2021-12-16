@@ -1,0 +1,54 @@
+<!DOCTYPE html5>
+<html lang="en">
+	<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="stylesheet.css">
+	<title>Secure Pos - Eintragungsformular</title>
+	</head>
+<body>
+	<header>
+		<h1>Klausurname Noten</h1>
+		<p><a href="https://zecurepos.github.io/prof-klausuren.html">zurück zur Klausurübersicht</a></p>
+	</header>
+	<main>
+		<form>
+		
+			<table>
+			<tr>
+				<th>Matrikelnummer</th>
+				<th>Noten</th>
+			</tr>
+			<tr>
+				<td>daten aus der DB laden</td>
+				<td><form><input type="number" id="grades" name="grades" min="1" max="5" required></form></td>
+		
+	<script>
+		const input= document.querySelector('input[name="grades"]');
+
+		input.addEventListener('invalid', function(event){
+			if(event.target.validity.valueMissing){
+				event.target.setCustomValidity('is leer');
+			}
+		})
+
+		input.addEventListener('change', function(event){
+			event.target.set.CustomValidity('');
+		})
+	</script>
+		</table>
+		<button name="submit" type="submit" action="popup.js">Absenden</button>	
+		</form>
+	
+		<!-- <script>
+		
+			window.confirm("Nach dem Absenden können Sie die Noten nicht mehr ändern");
+	
+		</script> --!>
+	</main>
+</body>
+</html>
+
+
+
+
