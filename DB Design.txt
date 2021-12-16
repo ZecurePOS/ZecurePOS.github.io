@@ -1,0 +1,28 @@
+mongodb datenbank sse
+
+collection user:
+- id  number
+- email  string
+- passwort  string
+- benutzername  string
+- rolle  string
+
+
+
+collection studiengang:
+- studienagngname   string
+- arrray mit string von fächern  array
+
+
+
+collection noten:
+- fach  string
+- profid  number
+- studentid  number
+- datum  date.  (YYYY-MM-DD)
+- note  float
+
+
+
+registrieren ist man student
+nur der admin kann professoren erstellen
