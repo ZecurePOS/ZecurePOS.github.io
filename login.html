@@ -4,6 +4,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale =1.0">
+	<link rel="stylesheet" href="style.css">
 	<title>Secure POS</title>
 </head>
 
@@ -18,7 +19,7 @@
 			<div id="logindiv">
 				<form method="post" id="login" action="/validate">
 					<!-- action muss noch angepasst werden -->
-					<table>
+					<table id="loginDaten">
 						<tr>
 							<td>
 								<label for="user">Email:</label>
@@ -39,7 +40,7 @@
 							<td>
 							</td>
 							<td>
-								<button name="submitButton" tpye="submit">Anmelden</button>
+								<button name="submitButton" tpye="submit" id="anmelden">Anmelden</button>
 							</td>
 						</tr>
 					</table>
@@ -51,7 +52,7 @@
 			<div id="registerdiv">
 				<form method="post" id="register" action="">
 					<!-- action muss noch angepasst werden -->
-					<table>
+					<table id="registerDaten">
 						<tr>
 							<td>
 								<label for="user">Benutzername:</label>
@@ -88,7 +89,7 @@
 							<td>
 							</td>
 							<td>
-								<button name="submitButton" tpye="submit">Registrieren</button>
+								<button name="submitButton" tpye="submit" id="registerSubmit">Registrieren</button>
 							</td>
 						</tr>
 					</table>

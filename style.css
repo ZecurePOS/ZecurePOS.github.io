@@ -7,19 +7,19 @@ body{
     width: 100%;
 }
 
-#benutzerTabelle th, #faecherTabelle th, notenTabelle th, #sitemap th {
+#benutzerTabelle th, #faecherTabelle th, #notenTabelle th, #sitemap th, #klausurenTabelle th, #notenFormular th, #loginDaten th, #registerDaten th {
     background-color: #4CAF50;
     color: white;
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-#benutzerTabelle td, #faecherTabelle td, #notenTabelle td, #sitemap td  {
+#benutzerTabelle td, #faecherTabelle td, #notenTabelle td, #sitemap td, #klausurenTabelle td, #notenFormular td, #loginDaten td, #registerDaten td{
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-#ausfuehren {
+#ausfuehren, #absenden, #anmelden, #registerSubmit {
     background-color: #4CAF50;
     border: none;
     color: white;
