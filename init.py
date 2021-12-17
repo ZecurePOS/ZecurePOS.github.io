@@ -13,9 +13,10 @@ app = Flask(__name__)
 # UTILITY-FUNCTIONS
 def readhtml(filename):
     data = open(filename, "r")
-    str  = data.read()
+    string  = data.read()
     data.close()
-    return str
+    string = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', string)
+    return string
 
 def connect_to_db():
     global db
@@ -65,8 +66,7 @@ def validate():
 @app.route("/student")
 def student():
     datei    = readhtml('student.html')
-    replaced = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', datei)
-    return replaced
+    return datei
 
 @app.route("/noteneinsicht")
 def noteneinsicht():
@@ -75,22 +75,51 @@ def noteneinsicht():
     col = db['user']
     find_db = col.find( {'username': session['username']} )
     user = find_db[0]
-    #find_db = db['noten'].find( {'stud_id': user_id} )
-    #for x in find_db:
-    #    subject = x['subject']
-    #    grade = x['mark']
-    #    print("subject: "); print(subject)
-    #    print("mark: "); print(mark)
-    replaced = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', datei)
-    return replaced
+    find_db = db['noten'].find( {'stud_id': user['_id']} )
+    string = ''
+    for obj_note in find_db:
+        subject = obj_note['subject']
+        print(subject)
+        grade = str(obj_note['mark'])
+        print(grade)
+        date = str(obj_note['date'])
+        string += '<tr><td>' + subject + '</td><td>' + grade + '</td><td>' + date + '</td></tr>'
+    datei = re.sub('</tr>', '</tr>' + string, datei)
+    return datei
 
 @app.route("/klausuren")
 def klausuren():
-    return readhtml('klausuren.html')
+    checkbox = '<td>\
+				<select name="actions" id="actions">\
+                    <option value="" disabled selected hidden>Wählen Sie aus...</option>\
+                    <option>keine Action</option>\
+                    <option>anmelden</option>\
+                    <option>abmelden</option>\
+                </select>\
+			</td>'
+    db = connect_to_db()
+    usr_col = db['user']
+    user = usr_col.find({'username' : session['username']})
+    fak = user[0]['faculty']
+    col = db['studiengang']
+    find_db = col.find( {'faculty': fak} )
+    faecher = find_db[0]['subjects']
+    string = ''
+    for fach in faecher:
+        
+    return readhtml('student_klausuren.html')
 
 @app.route("/professor")
 def professor():
     return readhtml('professor.html')
+
+@app.route("/noten")
+def noten():
+    return readhtml('professor_noten.html')
+
+@app.route("/klausuren?=68E92D")
+def klaus():
+    return readhtml('professor_klausuren.html')
 
 @app.route("/administrator")
 def administrator():

@@ -10,9 +10,9 @@
 
 <body>
     <h1 class="header">Willkommen, <span id="studentname"></span></h1>
-    <p><a href="student.html">zurück zur Startseite</a></p>
+    <p><a href="/student">zurück zur Startseite</a></p>
     <hr><br>
-    <h2>Ihre Fächer</h2>
+    <h2>Fächerauswahl</h2>
     <form action="">
         <label for="studiengang">Studiengang:</label>
         <select name="studiengang" id="studiengang">
@@ -31,27 +31,10 @@
             <th>Status</th>
             <th>Actions</th>
         </tr>
-        <tr>
-            <td id="fach"></td>
-            <td id="datum"></td>
-            <td id="professor"></td>
-            <td id="status"></td>
-            <td><select name="actions" id="actions">
-                    <option value="" disabled selected hidden>Wählen Sie aus...</option>
-                    <option>keine Action</option>
-                    <option>anmelden</option>
-                    <option>abmelden</option>
-                </select></select></td>
-        </tr>
-
     </table>
     <br><br><br>
     <input id="submitbu" name="submit" value="Auswahl speichern" type="button" />
 
-    <script type="text/javascript">
-        window.onload = connect_to_db();
-        get_faecher_from_studiengang('IB');
-    </script>
 <div class="logout">
     <form action="" method="DELETE">
         <input type="submit" value="ausloggen">
