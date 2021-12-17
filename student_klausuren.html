@@ -10,6 +10,7 @@
 
 <body>
     <h1 class="header">Willkommen, <span id="studentname"></span></h1>
+    <p><a href="student.html">zurück zur Startseite</a></p>
     <hr><br>
     <h2>Ihre Fächer</h2>
     <form action="">
@@ -23,8 +24,26 @@
         <br><br>
     </form>
     <table id="faecher">
-        <th>Fach</th>
-        <th>Angemeldet</th>
+        <tr>
+            <th>Fach</th>
+            <th>Datum</th>
+            <th>Professor</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+        <tr>
+            <td id="fach"></td>
+            <td id="datum"></td>
+            <td id="professor"></td>
+            <td id="status"></td>
+            <td><select name="actions" id="actions">
+                    <option value="" disabled selected hidden>Wählen Sie aus...</option>
+                    <option>keine Action</option>
+                    <option>anmelden</option>
+                    <option>abmelden</option>
+                </select></select></td>
+        </tr>
+
     </table>
     <br><br><br>
     <input id="submitbu" name="submit" value="Auswahl speichern" type="button" />
