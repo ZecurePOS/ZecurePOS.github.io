@@ -70,16 +70,17 @@ def student():
 
 @app.route("/noteneinsicht")
 def noteneinsicht():
-    datei    = readhtml('noteneinsicht.html')
-    user = db['user']
-    user_id = user['_id']
-    print(user_id)
-    find_db = db['noten'].find( {'stud_id': user_id} )
-    for x in find_db:
-        subject = x['subject']
-        grade = x['mark']
-        print("subject: "); print(subject)
-        print("mark: "); print(mark)
+    datei    = readhtml('student_noteneinsicht.html')
+    db = connect_to_db()
+    col = db['user']
+    find_db = col.find( {'username': session['username']} )
+    user = find_db[0]
+    #find_db = db['noten'].find( {'stud_id': user_id} )
+    #for x in find_db:
+    #    subject = x['subject']
+    #    grade = x['mark']
+    #    print("subject: "); print(subject)
+    #    print("mark: "); print(mark)
     replaced = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', datei)
     return replaced
 
