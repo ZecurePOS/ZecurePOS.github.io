@@ -15,7 +15,9 @@ def readhtml(filename):
     data = open(filename, "r")
     string  = data.read()
     data.close()
-    string = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', string)
+    # nur wenn session gesetzt ist ansonsten error
+    if (session.get('username')):
+        string = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', string)
     return string
 
 def connect_to_db():
@@ -35,6 +37,15 @@ def hash_passwd(text):
         else:
             result += chr((ord(char) + 1 - 97) % 26 + 97)
     return result
+
+def format_date(date):
+    #date  = re.split(' ', date)
+    date  = re.split('-', date)
+    year  = date[0]
+    month = date[1]
+    day   = date[2].split()[0]
+    date  = str(day)+'.'+str(month)+'.'+str(year)
+    return date
 
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RThuifwebghweqijfgoew8tfuw2tr1t27&/)"ß9tg04'
@@ -79,12 +90,11 @@ def noteneinsicht():
     find_db = db['noten'].find( {'stud_id': user['_id']} ) # nur die noten vom eingeloggten user
     string  = '' #für unsere tabelle die gefüllt wird
     for obj_note in find_db:
-        print(obj_note)
         if obj_note is None:
             break
         subject = str(obj_note['subject'])
         grade   = str(obj_note['mark'])
-        date    = str(obj_note['date'])
+        date    = format_date(str(obj_note['date']))
         string += '<tr><td>' + subject + '</td><td>' + grade + '</td><td>' + date + '</td></tr>'
     datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
     return datei
@@ -103,6 +113,7 @@ def klausuren():
     for fach in faecher:
        string += '<tr><td>' + str(fach) + '</td><td>' + checkbox + '</td></tr>'
     datei = readhtml('student_klausuren.html')
+    datei = re.sub('<span id="student_studiengang"></span>', '<span id="student_studiengang">'+fak+'</span>', datei)
     datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
     return datei
 

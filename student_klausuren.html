@@ -5,7 +5,6 @@
     <meta charset="utf-8">
     <title>Student - Home</title>
     <link rel=stylesheet type=text/css href="static/style.css" />
-    <script src="database.js"></script>
 </head>
 
 <body>
@@ -13,16 +12,7 @@
     <p><a href="/student">zurück zur Startseite</a></p>
     <hr><br>
     <h2>Fächerauswahl</h2>
-    <form action="">
-        <label for="studiengang">Studiengang:</label>
-        <select name="studiengang" id="studiengang">
-            <option value="IB">IB</option>
-            <option value="CSB">CSB</option>
-            <option value="IMB">IMB</option>
-            <option value="UIB">UIB</option>
-        </select>
-        <br><br>
-    </form>
+    <h3>Ihr Studiengang: <span id="student_studiengang"></span></h3>
     <table id="faecher">
         <tr>
             <th>Fach</th>
@@ -37,6 +27,7 @@
         <input type="submit" value="logout">
     </form>
 </div>
+
 </body>
 
 </html>
