@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <title>Student - Home</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel=stylesheet type=text/css href="static/style.css" />
     <script src="database.js"></script>
 </head>
 
@@ -33,6 +33,11 @@
         window.onload = connect_to_db();
         get_faecher_from_studiengang('IB');
     </script>
+<div class="logout">
+    <form action="" method="DELETE">
+        <input type="submit" value="ausloggen">
+    </form>
+</div>
 </body>
 
 </html>

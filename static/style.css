@@ -2,19 +2,19 @@ body{
     background-color: seashell;
     font-family: Arial;
 }
-#benutzerTabelle, #faecherTabelle, #notenTabelle, #sitemap {
+#benutzerTabelle, #faecherTabelle, #notenTabelle, #sitemap, #sitemap_prof {
     border-collapse: collapse;
     width: 100%;
 }
 
-#benutzerTabelle th, #faecherTabelle th, #notenTabelle th, #sitemap th, #klausurenTabelle th, #notenFormular th, #loginDaten th, #registerDaten th {
+#benutzerTabelle th, #faecherTabelle th, #notenTabelle th, #sitemap th, #klausurenTabelle th, #notenFormular th, #loginDaten th, #registerDaten th, #noten th, #sitemap_prof th {
     background-color: #4CAF50;
     color: white;
     border: 1px solid #ddd;
     padding: 8px;
 }
 
-#benutzerTabelle td, #faecherTabelle td, #notenTabelle td, #sitemap td, #klausurenTabelle td, #notenFormular td, #loginDaten td, #registerDaten td{
+#benutzerTabelle td, #faecherTabelle td, #notenTabelle td, #sitemap td, #klausurenTabelle td, #notenFormular td, #loginDaten td, #registerDaten td, #noten td, #sitemap_prof td{
     border: 1px solid #ddd;
     padding: 8px;
 }

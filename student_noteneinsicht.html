@@ -2,6 +2,7 @@
 
 <head>
     <meta charset="utf-8">
+    <link rel=stylesheet type=text/css href="static/style.css" />
     <title>Student - Home</title>
 
 </head>
@@ -11,25 +12,18 @@
     <hr><br>
     <h2>Ihre Noten</h2>
     <table id="noten">
+        <tr>
         <th>Fach</th>
         <th>Note</th>
         <th>Datum</th>
+        </tr>
     </table>
     <br><br><br>
     <input id="dlbutton" name="download" value="Download Noten PDF" type="button" />
+<div class="logout">
+    <form action="" method="DELETE">
+        <input type="submit" value="ausloggen">
+    </form>
+</div>
 </body>
-
-<style>
-    table,
-    th,
-    td {
-        border: 1px solid black;
-    }
-
-    th,
-    td {
-        width: 50px;
-    }
-</style>
-
 </html>
