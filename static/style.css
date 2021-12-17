@@ -19,7 +19,7 @@ body{
     padding: 8px;
 }
 
-#ausfuehren, #absenden, #anmelden, #registerSubmit {
+#ausfuehren, #absenden, #anmelden, #registerSubmit, #dlbutton {
     background-color: #4CAF50;
     border: none;
     color: white;
