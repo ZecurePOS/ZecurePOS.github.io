@@ -20,7 +20,7 @@ def readhtml(filename):
 
 def connect_to_db():
     global db
-    if (db is None):
+    if db is None:
         CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@149.172.144.70:27018'
         client            = MongoClient( CONNECTION_STRING )
         db                = client[ 'sse' ]
@@ -79,6 +79,9 @@ def noteneinsicht():
     find_db = db['noten'].find( {'stud_id': user['_id']} ) # nur die noten vom eingeloggten user
     string  = '' #für unsere tabelle die gefüllt wird
     for obj_note in find_db:
+        print(obj_note)
+        if obj_note is None:
+            break
         subject = str(obj_note['subject'])
         grade   = str(obj_note['mark'])
         date    = str(obj_note['date'])
@@ -88,7 +91,7 @@ def noteneinsicht():
 
 @app.route("/klausuren")
 def klausuren():
-    checkbox = ''
+    checkbox = '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales" name="scales"></div>'
     db       = connect_to_db()
     usr_col  = db['user']
     user     = usr_col.find({'username' : session['username']})  #hole unseren eingeloggten user
@@ -98,8 +101,11 @@ def klausuren():
     faecher  = find_db[0]['subjects']
     string   = ''
     for fach in faecher:
+       string += '<tr><td>' + str(fach) + '</td><td>' + checkbox + '</td></tr>'
+    datei = readhtml('student_klausuren.html')
+    datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
+    return datei
 
-    return readhtml('student_klausuren.html')
 
 @app.route("/professor")
 def professor():

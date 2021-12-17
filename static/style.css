@@ -2,7 +2,7 @@ body{
     background-color: beige;
     font-family: Arial;
 }
-#benutzerTabelle, #faecherTabelle, #notenTabelle, #sitemap, #sitemap_prof, #faecher {
+#benutzerTabelle, #faecherTabelle, #notenTabelle, #sitemap, #sitemap_prof {
     border-collapse: collapse;
     width: 100%;
 }
