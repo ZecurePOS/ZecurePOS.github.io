@@ -89,14 +89,7 @@ def noteneinsicht():
 
 @app.route("/klausuren")
 def klausuren():
-    checkbox = '<td>\
-				<select name="actions" id="actions">\
-                    <option value="" disabled selected hidden>Wählen Sie aus...</option>\
-                    <option>keine Action</option>\
-                    <option>anmelden</option>\
-                    <option>abmelden</option>\
-                </select>\
-			</td>'
+    checkbox = ""
     db = connect_to_db()
     usr_col = db['user']
     user = usr_col.find({'username' : session['username']})
