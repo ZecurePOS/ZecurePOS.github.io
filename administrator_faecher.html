@@ -14,19 +14,9 @@
         <legend>Fächer</legend>
         <table id="faecherTabelle">
             <tr>
-                <th>Fachnummer</th>
                 <th>Fach</th>
                 <th>Professor</th>
                 <th>Actions</th>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td><select name="actions" id="actions">
-                    <option value="" disabled selected hidden>Wählen Sie aus...</option>
-                    <option>Professor zuweisen</option>
-                </select></select></td>
             </tr>
         </table>
     </fieldset>
@@ -35,7 +25,7 @@
     <button name="submitButton" tpye="submit" id="abbrechen">abbrechen</button>
 </form>
 <div class="logout">
-    <form action="" method="DELETE">
+    <form action="/logout" method="DELETE">
         <input type="submit" value="logout">
     </form>
 </div>

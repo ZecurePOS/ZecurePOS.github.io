@@ -9,7 +9,7 @@
 <body>
 	<header>
 		<h1 class="header">Willkommen, <span id="professorname"></span></h1>
-		<p><a href="/professor_klausuren">zurück zur Klausurübersicht</a><br>
+		<p><a href="/p_klausuren">zurück zur Klausurübersicht</a><br>
 		<p><a href="/professor">zurück zur Startseite</a></p>
 	</header>
 	<main>
@@ -17,13 +17,10 @@
 		
 			<table id="notenFormular">
 			<tr>
-				<th>Matrikelnummer</th>
+				<th>Klausur</th>
+				<th>Benutzername</th>
 				<th>Noten</th>
 			</tr>
-			<tr>
-				<td>daten aus der DB laden</td>
-				<td><form><input type="number" id="grades" name="grades" min="1" max="5" required></form></td>
-		
 	<script>
 		const input= document.querySelector('input[name="grades"]');
 
@@ -48,7 +45,7 @@
 		</script> --!>
 	</main>
 <div class="logout">
-    <form action="" method="DELETE">
+    <form action="/logout" method="DELETE">
         <input type="submit" value="logout">
     </form>
 </div>

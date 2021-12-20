@@ -2,106 +2,119 @@
 <html lang="de">
 
 <head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale =1.0">
-	<link rel=stylesheet type=text/css href="static/style.css" />
-	<title>Secure POS</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale =1.0">
+    <link rel=stylesheet type=text/css href="static/style.css"/>
+    <title>Secure POS</title>
 </head>
 
 <body>
-	<header>
-		<h1>Prüfungs Organisations System</h1>
-	</header>
+<header>
+    <h1>Prüfungs Organisations System</h1>
+</header>
 
-	<main>
-		<fieldset>
-			<legend>Login</legend>
-			<div id="logindiv">
-				<form method="post" id="login" action="/validate">
-					<table id="loginDaten">
-						<tr>
-							<td>
-								<label for="user">Email:</label>
-							</td>
-							<td>
-								<input name="email" type="email" size="15" maxlength="50" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label for="passwd">Passwort:</label>
-							</td>
-							<td>
-								<input name="passwd" type="password" size="15" maxlength="20" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-							</td>
-							<td>
-								<button name="submitButton" tpye="submit" id="anmelden">Anmelden</button>
-							</td>
-						</tr>
-					</table>
-				</form>
-			</div>
-		</fieldset>
-		<fieldset>
-			<legend>Registrieren</legend>
-			<div id="registerdiv">
-				<form method="post" id="register" action="">
-					<!-- action muss noch angepasst werden -->
-					<table id="registerDaten">
-						<tr>
-							<td>
-								<label for="user">Benutzername:</label>
-							</td>
-							<td>
-								<input name="user" type="text" size="15" maxlength="20" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label for="email">Email:</label>
-							</td>
-							<td>
-								<input name="email" type="email" size="15" maxlength="50" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label for="passwd">Passwort:</label>
-							</td>
-							<td>
-								<input name="passwd" type="password" size="15" maxlength="20" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-								<label for="passwd">Passwort wiederholen:</label>
-							</td>
-							<td>
-								<input name="passwd" type="password" size="15" maxlength="20" required=true>
-							</td>
-						</tr>
-						<tr>
-							<td>
-							</td>
-							<td>
-								<button name="submitButton" tpye="submit" id="registerSubmit">Registrieren</button>
-							</td>
-						</tr>
-					</table>
-				</form>
-			</div>
-		</fieldset>
-		</fieldset>
-	</main>
+<main>
+    <fieldset>
+        <legend>Login</legend>
+        <div id="logindiv">
+            <form method="post" id="login" action="/validate">
+                <table id="loginDaten">
+                    <tr>
+                        <td>
+                            <label for="user">Email:</label>
+                        </td>
+                        <td>
+                            <input name="email" type="email" size="15" maxlength="50" required=true>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="passwd">Passwort:</label>
+                        </td>
+                        <td>
+                            <input name="passwd" type="password" size="15" maxlength="20" required=true>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                            <button name="submitButton" tpye="submit" id="anmelden">Anmelden</button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </fieldset>
+    <fieldset>
+        <legend>Registrieren</legend>
+        <div id="registerdiv">
+            <form method="post" id="register" action="/register">
+                <!-- action muss noch angepasst werden -->
+                <table id="registerDaten">
+                    <tr>
+                        <td>
+                            <label for="user">Benutzername:</label>
+                        </td>
+                        <td>
+                            <input name="user" type="text" size="15" maxlength="20" required=true>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="email">Email:</label>
+                        </td>
+                        <td>
+                            <input name="email" type="email" size="15" maxlength="50" required=true>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="passwd">Passwort:</label>
+                        </td>
+                        <td>
+                            <input name="passwd" type="password" size="15" maxlength="20" required=true>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="passwd">Passwort wiederholen:</label>
+                        </td>
+                        <td>
+                            <input name="passwd" type="password" size="15" maxlength="20" required=true>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <label for="studiengang">Studiengang:</label>
+                        </td>
+                        <td><select name="actions" id="actions">
+                            <option value="" disabled selected hidden>Wählen Sie aus...</option>
+                            <option>IB</option>
+                            <option>CSB</option>
+                            <option>IMB</option>
+                            <option>UIB</option>
+                        </select></select>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                        </td>
+                        <td>
+                        <button name="submitButton" tpye="submit" id="registerSubmit">Registrieren</button>
+                        </td>
+                    </tr>
+                </table>
+            </form>
+        </div>
+    </fieldset>
+    </fieldset>
+</main>
 
-	<footer>
-		<p>Diese Seite wurde erstellt von Team 5G.</p>
-		<p>Made with love using MongoDB 5.0.4</p>
-	</footer>
+<footer>
+    <p>Diese Seite wurde erstellt von Team 5G.</p>
+    <p>Made with love using MongoDB 5.0.4</p>
+</footer>
 </body>
 
 </html>
