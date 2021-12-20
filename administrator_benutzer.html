@@ -9,33 +9,24 @@
 <header>
         <h1 class="header">Willkommen, <span id="administratorname"></span></h1>
 </header>
-<form method="GET" action="">
+<form method="POST" action="benutzer">
     <fieldset>
         <legend>Benutzer</legend>
         <table id="benutzerTabelle">
             <tr>
                 <th>Benutzername</th>
                 <th>Email</th>
+                <th>Rolle</th>
                 <th>Actions</th>
-            </tr>
-            <tr>
-                <td></td>
-                <td></td>
-                <td><select name="actions" id="actions">
-                    <option value="" disabled selected hidden>Wählen Sie aus...</option>
-                    <option>Role zuweisen</option>
-                    <option>Passwort ersetzen</option>
-                    <option>Löschen</option>
-                </select></select></td>
             </tr>
         </table>
     </fieldset>
     <br>
     <button name="submitButton" tpye="submit" id="ausfuehren">ausführen</button>
-    <button name="submitButton" tpye="submit" id="abbrechen">abbrechen</button>
+    <button name="submitButton" tpye="submit" id="abbrechen" ><a href="/administrator" >abbrechen</a></button>
 </form>
 <div class="logout">
-    <form action="index" method="DELETE">
+    <form action="/logout" method="DELETE">
         <input type="submit" value="logout">
     </form>
 </div>
