@@ -24,5 +24,11 @@ collection noten:
 
 
 
+collection klausuren:
+- subject (fach) string
+- prof_id object_id
+- registred_students array
+- date  date
+
 registrieren ist man student
 nur der admin kann professoren erstellen

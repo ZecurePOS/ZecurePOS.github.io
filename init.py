@@ -138,7 +138,7 @@ def noteneinsicht():
 @app.route("/klausuren")
 def klausuren():
     if check_status('Student') == 200:
-        checkbox = '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales" name="scales"></div>'
+        checkbox = '<div><label for="scales">angemeldet: </label> <form method="post" id="login" action="/save_subects_student"><input type="checkbox" id="scales" name="scales"></div></form>'
         db       = connect_to_db()
         usr_col  = db['user']
         user     = usr_col.find({'username' : session['username']})  #hole unseren eingeloggten user
@@ -155,6 +155,17 @@ def klausuren():
     else:
         datei = check_status('Student')
     return datei
+
+
+@app.route("/save_subects_student", methods = ['POST'])
+# login leitet weiter zu student oder prof
+def save_subects_student():
+    db = connect_to_db()
+    if request.method == 'POST':
+        checkboxes = request.form['scales']
+        col        = db['user']
+        print(checkboxes)
+    return flask.redirect("/klausuren")
 
 
 @app.route("/register", methods = ['POST'])
@@ -270,7 +281,7 @@ def administrator():
 @app.route("/benutzerverwaltung")
 def benutzer():
     if check_status('Administrator') == 200:
-        checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Role zuweisen</option><option>Passwort ersetzen</option><option>Löschen</option></select></select>'
+        checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Rolle zuweisen</option><option>Passwort ersetzen</option><option>Löschen</option></select></select>'
         datei = readhtml('administrator_benutzer.html')
         db = connect_to_db()
         find_db = db['user'].find() # hole alle Benutzer aus der Datenbank
