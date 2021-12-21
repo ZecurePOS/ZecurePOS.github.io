@@ -17,7 +17,7 @@ def readhtml(filename):
     data.close()
     # nur wenn session gesetzt ist ansonsten error
     if (session.get('username')):
-        string = re.sub('<span id="studentname"></span>', '<span id="studentname">'+session['username']+'</span>', string)
+        string = re.sub('<span id="username"></span>', '<span id="username">'+session['username']+'</span>', string)
     return string
 
 def connect_to_db():
