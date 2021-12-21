@@ -223,7 +223,7 @@ def noten():
                             studentId = obj_student2['_id']
                         find_noten = db['noten'].find({'stud_id': studentId, 'subject': subject}) # Schauen, ob bereites eine Note eingetragen wurde
                         if (len(list(find_noten))) < 1:
-                            input = '<form><input type="number" id="grades" name="grades" min="1" max="5" required></form>'
+                            input = '<form><input type="number" step="0.1" id="grades" name="grades" min="1" max="5" required></form>'
                         else:
                             find_noten = db['noten'].find({'stud_id': studentId, 'subject': subject})
                             for obj_note in find_noten:
