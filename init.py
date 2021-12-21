@@ -320,23 +320,70 @@ def administrator():
 @app.route("/benutzerverwaltung")
 def benutzer():
     if check_status('Administrator') == 200:
-        checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Rolle zuweisen</option><option>Passwort ersetzen</option><option>Löschen</option></select></select>'
-        datei    = readhtml('administrator_benutzer.html')
-        db       = connect_to_db()
-        find_db  = db['user'].find() # hole alle Benutzer aus der Datenbank
-        string   = ''
-        for obj_user in find_db:
-            if obj_user is None:
-                break
-            username = str(obj_user['username'])
-            email    = str(obj_user['email'])
-            role     = str(obj_user['role'])
-            string  += '<tr><td>' + username + '</td><td>' + email + '</td><td>' + role + '</td><td>' + checkbox + '</td></tr>'
-        datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
+        if request.method == 'GET':
+            # checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option value="rolle">Rolle zuweisen</option><option value="passwort">Passwort ersetzen</option><option value="loeschen">Löschen</option></select>'
+            datei    = readhtml('administrator_benutzer.html')
+            db       = connect_to_db()
+            find_db  = db['user'].find() # hole alle Benutzer aus der Datenbank
+            string   = ''
+            zeile = 0
+            for obj_user in find_db:
+                if obj_user is None:
+                    break
+                zeile = zeile + 1
+                username = str(obj_user['username'])
+                email    = str(obj_user['email'])
+                role     = str(obj_user['role'])
+                string  += '<tr><td>' + str(zeile) + '</td><td>' + username + '</td><td>' + email + '</td><td>' + role + '</td></tr>'
+            datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
     else:
         datei = check_status('Administrator')
     return datei
 
+@app.route("/benutzer_action", methods = ['POST'])
+def benutzer_action():
+    if request.method == 'POST':
+        if request.form['submitButton'] == 'submit':
+            db = connect_to_db()
+            find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+            if int(request.form['nummer']) > len(list(find_db)):
+                return flask.make_response(
+                    '''<h2>Die Zeile existiert nicht, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+            else:
+                request_number = int(request.form['nummer']) - 1
+                if request.form['actions'] == 'rolle':
+                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    if find_db[request_number]['role'] == 'Student':
+                        userId = find_db[request_number]['_id']
+                        db['user'].update_one({'_id': userId}, {'$set': {'role': 'Professor'}})
+                    elif find_db[request_number]['role'] == 'Professor':
+                        userId = find_db[request_number]['_id']
+                        db['user'].update_one({'_id': userId}, {'$set': {'role': 'Student'}})
+                    else:
+                        return flask.make_response(
+                            '''<h2>Rollenzuweisung ist für für neu registrierte Benutzer (Studenten) möglich, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+                elif request.form['actions'] == 'passwort':
+                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    username = find_db[request_number]['username']
+                    return flask.make_response(
+                        '<form method="POST" action="passwort_ersetzen" name="passwort_ersetzen"><h2>Geben Sie bitte den Benutzername (' + username + ') und das neue Passwort ein:.</h2><input name="user" type="text" size="15" maxlength="20" placeholder="Benutzername" required=true><br><input name="passwd" type="password" size="15" maxlength="20" placeholder="Passwort" required=true><br><button name="submitButton" tpye="submit" id="passwordSubmit">bestätigen</button></form>')
+
+                elif request.form['actions'] == 'loeschen':
+                    find_db = db['user'].find()
+                    userToDelete = find_db[request_number]
+                    db['user'].delete_one(userToDelete)
+    return flask.redirect("/benutzerverwaltung")
+
+@app.route("/passwort_ersetzen", methods = ['POST'])
+def passwort_ersetzen():
+    if request.method == 'POST':
+        db = connect_to_db()
+        pw = hash_passwd(request.form['passwd'])
+        db['user'].update_one({'username': request.form['user']}, {'$set': {'passwd': pw}})
+        return flask.make_response(
+            '''<h2>Das Passwort wurde erfolgreich aktualisiert. <a href="/benutzerverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+    return flask.make_response(
+        '''<h2>Das Passwort konnte nicht aktualisiert werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
 
 @app.route("/notenverwaltung")
 def notenverwaltung():
@@ -375,25 +422,77 @@ def notenverwaltung():
 def faecherverwaltung():
     if check_status('Administrator') == 200:
         datei    = readhtml('administrator_faecher.html')
-        checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Professor zuweisen</option></select>'
+        # checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Professor zuweisen</option></select>'
         db       = connect_to_db()
         find_db  = db['klausuren'].find() # hole alle Klausuren aus der Datenbank
         string   = ''
+        zeile = 0
         for obj_fach in find_db:
             if obj_fach is None:
                 break
+            zeile = zeile + 1
             subject = obj_fach['subject']
             profs   = db['user'].find({'_id': obj_fach['prof_id']}) # hole Professorendaten anhand ihrer Id
             for obj_user in profs:
                 if obj_user is None:
                     break
                 prof = obj_user['username']
-            string += '<tr><td>' + subject + '</td><td>' + prof + '</td><td>' + checkbox + '</td></tr>'
+            string += '<tr><td>' + str(zeile) + '</td><td>' + subject + '</td><td>' + prof + '</td></tr>'
         datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
     else:
         datei = check_status('Administrator')
     return datei
 
+@app.route("/faecher_action", methods = ['POST'])
+def faecher_action():
+    if request.method == 'POST':
+        if request.form['submitButton'] == 'submit':
+            db = connect_to_db()
+            find_db = db['klausuren'].find()  # hole alle Klausuren aus der Datenbank
+            if int(request.form['nummer']) > len(list(find_db)):
+                return flask.make_response(
+                    '''<h2>Die Zeile existiert nicht, versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
+            else:
+                request_number = int(request.form['nummer']) - 1
+                if request.form['actions'] == 'zuweisen':
+                    find_fach = db['klausuren'].find()  # hole alle Klausuren aus der Datenbank
+                    fach = find_fach[request_number]['subject']
+                    find_db = db['user'].find({'role': 'Professor'})  # hole alle Professoren aus der Datenbank
+                    # print(len(list(find_db)))
+                    counter = 0
+                    profs = []
+                    for obj_prof in find_db:
+                        if obj_prof is None:
+                            break
+                        profs.append(obj_prof['username'])
+                    str_profs = '<br>'.join(profs)
+                    return flask.make_response(
+                        '<form method="POST" action="fach_zuweisen" name="passwort_ersetzen">'
+                        '<h2>Geben Sie bitte Name vom Fach (' + fach + ') und Name vom Professor, dem Sie das Fach zuweisen möchten, ein:</h2>'
+                                                                       '<input name="fach" type="text" size="15" maxlength="20" placeholder="Fach" required=true><br>'
+                                                                       '<input name="prof" type="text" size="15" maxlength="40" placeholder="Prof" required=true><br>'
+                                                                       '<button name="submitButton" tpye="submit" id="passwordSubmit">bestätigen</button><br>'
+                                                                       '<p>hier finden Sie eine Liste von den Professoren, die sich zurzeit im System befinden:</p><br>'
+                                                                       + str_profs + '</form>')
+    return flask.redirect("/faecherverwaltung")
+
+@app.route("/fach_zuweisen", methods = ['POST'])
+def fach_zuweisen():
+    if request.method == 'POST':
+        if request.form['action'] == 'submit':
+            db = connect_to_db()
+            fach = request.form['fach']
+            prof = request.form['prof']
+            find_prof = db['user'].find({'username': prof})
+            profId = find_prof[0]['_id']
+            db['klausuren'].update_one({'subject': fach}, {'$set': {'prof_id': profId}})
+            return flask.make_response(
+                '''<h2>Die Aktion wurde erfolgreich ausgeführt. <a href="/faecherverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+        else:
+            return flask.make_response(
+                '''<h2>w&auml;hlen Sie bitte <a href="/faecherverwaltung">hier</a> die Aktion aus.</h2>''')
+    return flask.make_response(
+        '''<h2>Die Aktion wurde nicht erfolgreich ausgeführt. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
 
 @app.route('/logout')
 def logout():
