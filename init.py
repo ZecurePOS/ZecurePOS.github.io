@@ -84,6 +84,7 @@ app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RThuifwebghweqijfgoew8tfuw2tr1t27&
 def init():
     return readhtml('login.html')
 
+
 @app.route("/validate", methods = ['POST'])
 # login leitet weiter zu student oder prof
 def validate():
@@ -105,13 +106,15 @@ def validate():
                 return flask.redirect("/administrator")
     return flask.redirect("/")
 
+
 @app.route("/student")
 def student():
     if check_status('Student') == 200:
-            datei = readhtml('student.html')
+        datei = readhtml('student.html')
     else:
         datei = check_status('Student')
     return datei
+
 
 @app.route("/noteneinsicht")
 def noteneinsicht():
@@ -135,10 +138,11 @@ def noteneinsicht():
         datei = check_status('Student')
     return datei
 
+
 @app.route("/klausuren")
 def klausuren():
     if check_status('Student') == 200:
-        checkbox = '<div><label for="scales">angemeldet: </label> <form method="post" id="login" action="/save_subects_student"><input type="checkbox" id="scales" name="scales"></div></form>'
+        checkbox = '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales" name="scales"></div>'
         db       = connect_to_db()
         usr_col  = db['user']
         user     = usr_col.find({'username' : session['username']})  #hole unseren eingeloggten user
@@ -157,34 +161,43 @@ def klausuren():
     return datei
 
 
-@app.route("/save_subects_student", methods = ['POST'])
+@app.route('/insert_grades', methods = ['POST'])
+def insert_grades():
+    #db = connect_to_db()
+    if request.method=='POST':
+        grades = request.form.getlist('grades[]')
+        print(grades)
+    return flask.redirect("/p_noten")
+
+
+#@app.route("/save_subects_student", methods = ['POST'])
 # login leitet weiter zu student oder prof
-def save_subects_student():
-    db = connect_to_db()
-    if request.method == 'POST':
-        checkboxes = request.form['scales']
-        col        = db['user']
-        print(checkboxes)
-    return flask.redirect("/klausuren")
+#def save_subects_student():
+#    db = connect_to_db()
+#    if request.method == 'POST':
+#        checkboxes = request.form['scales']
+#        col        = db['user']
+#        print(checkboxes)
+#    return flask.redirect("/klausuren")
 
 
 @app.route("/register", methods = ['POST'])
 def register():
     db = connect_to_db()
     if request.method=='POST':
-        email   = request.form['email']
-        benutzername = request.form['user']
-        pw      = hash_passwd( request.form['passwd'] )
-        studiengang = request.form['actions']
+        email         = request.form['email']
+        benutzername  = request.form['user']
+        pw            = hash_passwd( request.form['passwd'] )
+        studiengang   = request.form['actions']
         result = {
-            "email": email,
-            "passwd": pw,
+            "email"   : email,
+            "passwd"  : pw,
             "username": benutzername,
-            "role": "Student",
-            "faculty": studiengang
+            "role"    : "Student",
+            "faculty" : studiengang
         }
-        col     = db['user']
-        find_email = col.find( {'email': email} )
+        col           = db['user']
+        find_email    = col.find( {'email': email} )
         if len(list(find_email)) > 0: # check ob die E-mail-Adresse in der Datenbank bereits existiert
             return flask.make_response('''<h2>Diese E-Mail-Adresse ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einer anderen E-Mail-Adresse.</h2>''')
         find_username = col.find({'username': benutzername})
@@ -206,13 +219,20 @@ def professor():
         datei = check_status('Professor')
     return datei
 
+
 @app.route("/p_noten")
 def noten():
     if check_status('Professor') == 200:
-        datei = readhtml('professor_noten.html')
-        db = connect_to_db()
-        find_db = db['user'].find({'username': session['username']}) # prof_id suchen
-        string = ''
+        datei    = readhtml('professor_noten.html')
+        db       = connect_to_db()
+        find_db  = db['user'].find({'username': session['username']}) # prof_id suchen
+        string   = ''
+        subjects = []
+        selected = ''
+        if (session.get('subject')):
+            selected = session['subject']
+        else:
+            selected = db['klausuren'].find({'prof_id': find_db[0]['_id']})[0]
         for obj_user in find_db:
             if obj_user is None:
                 break
@@ -234,26 +254,35 @@ def noten():
                             studentId = obj_student2['_id']
                         find_noten = db['noten'].find({'stud_id': studentId, 'subject': subject}) # Schauen, ob bereites eine Note eingetragen wurde
                         if (len(list(find_noten))) < 1:
-                            input = '<form><input type="number" step="0.1" id="grades" name="grades" min="1" max="5" required></form>'
+                            input = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
                         else:
                             find_noten = db['noten'].find({'stud_id': studentId, 'subject': subject})
                             for obj_note in find_noten:
                                 if obj_note is None:
                                     break
                                 input = str(obj_note['mark'])
+                        subjects.append(subject)
                         string += '<tr><td>' + subject + '</td><td>' + student + '</td><td>' + input + '</td></tr>'
         datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
+        unique_subjects = set(subjects)
+        substring = ''
+        for unique_subject in unique_subjects:
+            substring += '<option value="'+unique_subject+'">'+unique_subject+'</option>'
+        print(substring)
+        datei = re.sub('<select id="select" name="faecher" onchange="reload\(\)"></select>', '<select id="select" name="faecher" onchange="reload()">'+substring+'</select>', datei)
+        print(datei)
     else:
         datei = check_status('Professor')
     return datei
 
+
 @app.route("/p_klausuren")
 def klaus():
     if check_status('Professor') == 200:
-        datei = readhtml('professor_klausuren.html') # Suche nach Id des angemeldeten Prof
-        db = connect_to_db()
+        datei   = readhtml('professor_klausuren.html') # Suche nach Id des angemeldeten Prof
+        db      = connect_to_db()
         find_db = db['user'].find({'username': session['username']})
-        string = ''
+        string  = ''
         for obj_user in find_db:
             if obj_user is None:
                 break
@@ -263,12 +292,13 @@ def klaus():
             if obj_klausur is None:
                 break
             subject = obj_klausur['subject']
-            date = format_date(str(obj_klausur['date']))
+            date    = format_date(str(obj_klausur['date']))
             string += '<tr><td>' + subject + '</td><td>' + date + '</td></tr>'
         datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
     else:
         datei = check_status('Professor')
     return datei
+
 
 @app.route("/administrator")
 def administrator():
@@ -278,47 +308,49 @@ def administrator():
         datei = check_status('Administrator')
     return datei
 
+
 @app.route("/benutzerverwaltung")
 def benutzer():
     if check_status('Administrator') == 200:
         checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Rolle zuweisen</option><option>Passwort ersetzen</option><option>Löschen</option></select></select>'
-        datei = readhtml('administrator_benutzer.html')
-        db = connect_to_db()
-        find_db = db['user'].find() # hole alle Benutzer aus der Datenbank
-        string = ''
+        datei    = readhtml('administrator_benutzer.html')
+        db       = connect_to_db()
+        find_db  = db['user'].find() # hole alle Benutzer aus der Datenbank
+        string   = ''
         for obj_user in find_db:
             if obj_user is None:
                 break
             username = str(obj_user['username'])
-            email = str(obj_user['email'])
-            role = str(obj_user['role'])
-            string += '<tr><td>' + username + '</td><td>' + email + '</td><td>' + role + '</td><td>' + checkbox + '</td></tr>'
+            email    = str(obj_user['email'])
+            role     = str(obj_user['role'])
+            string  += '<tr><td>' + username + '</td><td>' + email + '</td><td>' + role + '</td><td>' + checkbox + '</td></tr>'
         datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
     else:
         datei = check_status('Administrator')
     return datei
 
+
 @app.route("/notenverwaltung")
 def notenverwaltung():
     if check_status('Administrator') == 200:
         checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Note löschen</option><option>Note bearbeiten</option></select></select>'
-        datei = readhtml('administrator_noten.html')
-        db = connect_to_db()
-        find_db = db['noten'].find() # hole alle Noten aus der Datenbank
-        string = ''
+        datei    = readhtml('administrator_noten.html')
+        db       = connect_to_db()
+        find_db  = db['noten'].find() # hole alle Noten aus der Datenbank
+        string   = ''
         for obj_note in find_db:
             if obj_note is None:
                 break
             subject = obj_note['subject']
-            grade = str(obj_note['mark'])
-            date = format_date(str(obj_note['date']))
-            users = db['user'].find({'_id': obj_note['stud_id']}) # hole Studentendaten anhand ihrer Id
+            grade   = str(obj_note['mark'])
+            date    = format_date(str(obj_note['date']))
+            users   = db['user'].find({'_id': obj_note['stud_id']}) # hole Studentendaten anhand ihrer Id
             for user in users:
                 if user is None:
                     break
                 username = user['username']
-                email = user['email']
-                faculty = user['faculty']
+                email    = user['email']
+                faculty  = user['faculty']
             profs = db['user'].find({'_id': obj_note['prof_id']}) # hole Professorendaten anhand ihrer Id
             for prof in profs:
                 if prof is None:
@@ -330,19 +362,20 @@ def notenverwaltung():
         datei = check_status('Administrator')
     return datei
 
+
 @app.route("/faecherverwaltung")
 def faecherverwaltung():
     if check_status('Administrator') == 200:
-        datei = readhtml('administrator_faecher.html')
+        datei    = readhtml('administrator_faecher.html')
         checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Professor zuweisen</option></select>'
-        db = connect_to_db()
-        find_db = db['klausuren'].find() # hole alle Klausuren aus der Datenbank
-        string = ''
+        db       = connect_to_db()
+        find_db  = db['klausuren'].find() # hole alle Klausuren aus der Datenbank
+        string   = ''
         for obj_fach in find_db:
             if obj_fach is None:
                 break
             subject = obj_fach['subject']
-            profs = db['user'].find({'_id': obj_fach['prof_id']}) # hole Professorendaten anhand ihrer Id
+            profs   = db['user'].find({'_id': obj_fach['prof_id']}) # hole Professorendaten anhand ihrer Id
             for obj_user in profs:
                 if obj_user is None:
                     break
@@ -352,6 +385,7 @@ def faecherverwaltung():
     else:
         datei = check_status('Administrator')
     return datei
+
 
 @app.route('/logout')
 def logout():

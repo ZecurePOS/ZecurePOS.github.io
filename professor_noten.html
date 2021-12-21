@@ -6,14 +6,17 @@
 		<link rel=stylesheet type=text/css href="static/style.css" />
 		<title>Secure Pos - Eintragungsformular</title>
 	</head>
-	<body>
+	<body onload="set_select();">
 		<header>
 			<h1 class="header">Willkommen, <span id="username"></span></h1>
 			<p><a href="/p_klausuren">zurück zur Klausurübersicht</a><br>
 			<p><a href="/professor">zurück zur Startseite</a></p>
 		</header>
 		<main>
-			<form>
+			<br>
+			<select id="select" name="faecher" onchange="reload()"></select>
+			<br><br>
+			<form method="post" action="/insert_grades">
 				<table id="notenFormular">
 					<tr>
 						<th>Klausur</th>
@@ -25,16 +28,30 @@
 
 						input.addEventListener('invalid', function(event){
 							if(event.target.validity.valueMissing){
-								event.target.setCustomValidity('is leer');
+								event.target.setCustomValidity('dafuq');
 							}
 						})
 
 						input.addEventListener('change', function(event){
 							event.target.set.CustomValidity('');
 						})
+
+
+
+						function reload() {
+							var select = document.getElementById('select');
+							var value = select.options[select.selectedIndex].value;
+							sessionStorage.setItem("subject", value);
+							location.reload();
+						}
+
+						function set_select() {
+							 var last_selected = sessionStorage.getItem("subject");
+							 document.getElementById('select').value = last_selected;
+						}
 					</script>
 				</table>
-			<button name="submit" type="submit" id="absenden" action="popup.js">Absenden</button>
+			<button name="submit" type="submit" id="absenden" >Absenden</button>
 			</form>
 
 			<!-- <script>
