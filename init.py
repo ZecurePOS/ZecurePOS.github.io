@@ -222,58 +222,66 @@ def professor():
 
 @app.route("/p_noten")
 def noten():
-    if check_status('Professor') == 200:
-        datei    = readhtml('professor_noten.html')
-        db       = connect_to_db()
-        find_db  = db['user'].find({'username': session['username']}) # prof_id suchen
-        string   = ''
-        subjects = []
-        selected = ''
-        if (session.get('subject')):
-            selected = session['subject']
-        else:
-            selected = db['klausuren'].find({'prof_id': find_db[0]['_id']})[0]
-        for obj_user in find_db:
-            if obj_user is None:
-                break
-            myId = obj_user['_id']
-            find_klausuren = db['klausuren'].find({'prof_id': myId}) # Suche nach Klausuren, die dem angememldeten Prof zugewiesen sind
-            for obj_klausur in find_klausuren:
-                if obj_klausur is None:
-                    break
-                subject = obj_klausur['subject']
-                if obj_klausur['registered_students'][0] != '': # Suche nach Ids von Studenten, die sich für die gefundene Klausur angemeldet sind
-                    for obj_student1 in obj_klausur['registered_students']:
-                        if obj_student1 is None:
-                            break
-                        find_student = db['user'].find({'_id': obj_student1}) # Suche nach Namen von Studenten anhand ihrer Id
-                        for obj_student2 in find_student:
-                            if obj_student2 is None:
-                                break
-                            student = obj_student2['username']
-                            studentId = obj_student2['_id']
-                        find_noten = db['noten'].find({'stud_id': studentId, 'subject': subject}) # Schauen, ob bereites eine Note eingetragen wurde
-                        if (len(list(find_noten))) < 1:
-                            input = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
-                        else:
-                            find_noten = db['noten'].find({'stud_id': studentId, 'subject': subject})
-                            for obj_note in find_noten:
-                                if obj_note is None:
-                                    break
-                                input = str(obj_note['mark'])
-                        subjects.append(subject)
-                        string += '<tr><td>' + subject + '</td><td>' + student + '</td><td>' + input + '</td></tr>'
-        datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
-        unique_subjects = set(subjects)
-        substring = ''
-        for unique_subject in unique_subjects:
-            substring += '<option value="'+unique_subject+'">'+unique_subject+'</option>'
-        print(substring)
-        datei = re.sub('<select id="select" name="faecher" onchange="reload\(\)"></select>', '<select id="select" name="faecher" onchange="reload()">'+substring+'</select>', datei)
-        print(datei)
+    if check_status('Professor') != 200: # if not logged in as professor
+        return check_status('Professor')
+    datei     = readhtml('professor_noten.html')
+    db        = connect_to_db()
+    myId      = db['user'].find({'username': session['username']})[0]['_id'] # get prof id
+    klausuren = db['klausuren'].find({'prof_id': myId}) # get this prof's subjects
+    subjects  = []
+    table     = ''
+    selected  = ''
+    displayed = ''
+    if (session.get('subject')): # if subject in the dropdown menu has been selected, only display such subjects 
+        selected = str(session['subject'])
+        datei = load_dropdown(datei, klausuren, selected)
     else:
-        datei = check_status('Professor')
+        datei = load_dropdown(datei, klausuren)
+        return datei
+    # get the relevant data
+    klausur = db['klausuren'].find({'prof_id': myId, 'subject': selected})[0]
+    for reg_student_id in klausur['registered_students']:
+        students = db['user'].find({'_id': reg_student_id}) # get the student object
+        # this part is super dumb. i cant just 'student = students[0]' cause of some weird error
+        student = {} 
+        for stud in students:
+            if stud is None:
+                return datei
+            student = stud
+        if student == {}:
+            return datei
+        # not we are save and not causing errors
+        noten = db['noten'].find({'stud_id': student['_id'], 'subject': klausur['subject']}) # get the grades
+        print("len: ", len(list(noten)))
+        if (len(list(noten)) < 1): # if grade not in db, display field to enter grade
+            displayed = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
+        else: # else display the grade itself
+            displayed = str(noten[0]['mark'])
+            print("displayed: ", displayed)
+        table += '<tr><td>' + selected + '</td><td>' + student['username'] + '</td><td>' + displayed + '</td></tr>'
+    datei = re.sub('</tr>', '</tr>' + table, datei)
     return datei
+
+
+def load_dropdown(datei, klausuren, selected = ''):
+    subjects = []
+    for klausur in klausuren:
+        subjects.append(klausur['subject'])
+    unique_subjects = set(subjects)
+    subject_list = ''
+    for unique_subject in unique_subjects:
+        if unique_subject == selected:
+            subject_list += '<option value="' + unique_subject + '" selected>' + unique_subject + '</option>'
+        else:
+            subject_list += '<option value="' + unique_subject + '">' + unique_subject + '</option>'
+    datei = re.sub('<select id="select" name="faecher" onchange="/reload"></select>', '<select id="select" name="faecher" onchange="/reload">' + subject_list + '</select>', datei)
+    return datei
+
+
+@app.route("/reload", methods = ['POST'])
+def reload():
+    session['subject'] = request.form['faecher']
+    return flask.redirect("/p_noten")
 
 
 @app.route("/p_klausuren")

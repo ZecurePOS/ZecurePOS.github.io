@@ -14,7 +14,10 @@
 		</header>
 		<main>
 			<br>
-			<select id="select" name="faecher" onchange="reload()"></select>
+			<form method="post" action="/reload">
+				<select id="select" name="faecher" onchange="/reload"></select>
+				<button type="submit" name="submit">Aktualisieren</button>
+			</form>
 			<br><br>
 			<form method="post" action="/insert_grades">
 				<table id="notenFormular">
