@@ -142,7 +142,6 @@ def noteneinsicht():
 @app.route("/klausuren")
 def klausuren():
     if check_status('Student') == 200:
-        checkbox = '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales" name="scales"></div>'
         db       = connect_to_db()
         usr_col  = db['user']
         user     = usr_col.find({'username' : session['username']})  #hole unseren eingeloggten user
@@ -152,7 +151,7 @@ def klausuren():
         faecher  = find_db[0]['subjects']
         string   = ''
         for fach in faecher:
-           string += '<tr><td>' + str(fach) + '</td><td>' + checkbox + '</td></tr>'
+           string += '<tr><td>' + str(fach) + '</td><td>' + make_checkbox(fach) + '</td></tr>'
         datei = readhtml('student_klausuren.html')
         datei = re.sub('<span id="student_studiengang"></span>', '<span id="student_studiengang">'+fak+'</span>', datei)
         datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
@@ -160,13 +159,31 @@ def klausuren():
         datei = check_status('Student')
     return datei
 
+def make_checkbox(fach):
+    return '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales[]" name="scales[]" value="' + str(fach) + '"></div>'
+
+@app.route('/anmelden', methods = ['POST'])
+def anmelden():
+    checkboxes = request.form.getlist('scales[]')
+    # insert checked subjects into db
+    db = connect_to_db()
+    user = db['user'].find({'username': session['username']})[0]
+    # for each subject in checkboxes do
+    for subject in checkboxes:
+        db_subject = db['klausuren'].find({'subject': subject})
+        # add current users id to registered_students
+        # push modified subject into db
+        ## THIS DOESNT WORK AND IT NEEDS TO BE FIXED
+        # db.klausuren.insert_one({'subject': db_subject}, {'registered_students': user['_id']})
+    # done
+    return flask.redirect("/klausuren")
 
 @app.route('/insert_grades', methods = ['POST'])
 def insert_grades():
     #db = connect_to_db()
     if request.method=='POST':
         grades = request.form.getlist('grades[]')
-        print(grades)
+        print("grades: ", grades)
     return flask.redirect("/p_noten")
 
 
@@ -179,7 +196,6 @@ def insert_grades():
 #        col        = db['user']
 #        print(checkboxes)
 #    return flask.redirect("/klausuren")
-
 
 @app.route("/register", methods = ['POST'])
 def register():
@@ -242,17 +258,24 @@ def noten():
     klausur = db['klausuren'].find({'prof_id': myId, 'subject': selected})[0]
     for reg_student_id in klausur['registered_students']:
         students = db['user'].find({'_id': reg_student_id}) # get the student object
-        # this part is super dumb. i cant just 'student = students[0]' cause of some weird error
-        student = {} 
-        for stud in students:
-            if stud is None:
-                return datei
-            student = stud
-        if student == {}:
-            return datei
-        # not we are save and not causing errors
+        # this part is super dumb. i cant just 'student = students[0]' cause students might not exist
+        # however students is not even None, i simply cant check if it is there
+        student = {}
+        try:
+            student = students[0]
+        except:
+            print("whoopsies")
+            continue
+        # now we are save and not causing errors
         noten = db['noten'].find({'stud_id': student['_id'], 'subject': klausur['subject']}) # get the grades
-        print("len: ", len(list(noten)))
+        print("len:  ", len(list(noten)))
+        print("list: ", list(noten))
+        print("noten:", noten)
+        try:
+            for note in noten:
+                print("note: ", note)
+        except:
+            print("error")
         if (len(list(noten)) < 1): # if grade not in db, display field to enter grade
             displayed = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
         else: # else display the grade itself

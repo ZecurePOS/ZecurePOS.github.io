@@ -13,14 +13,16 @@
     <hr><br>
     <h2>Fächerauswahl</h2>
     <h3>Ihr Studiengang: <span id="student_studiengang"></span></h3>
-    <table id="faecher">
-        <tr>
-            <th>Fach</th>
-            <th>Actions</th>
-        </tr>
-    </table>
-    <br><br><br>
-    <input id="submitbu" name="submit" value="Auswahl speichern" type="button" />
+	<form method="post" action="/anmelden">
+		<table id="faecher">
+			<tr>
+				<th>Fach</th>
+				<th>Actions</th>
+			</tr>
+		</table>
+		<br><br><br>
+		<button id="submitbu" name="submit" value="submit">Anmelden</button>
+	</form>
 
 <div class="logout">
     <form action="/logout" method="DELETE">

@@ -6,7 +6,7 @@
 		<link rel=stylesheet type=text/css href="static/style.css" />
 		<title>Secure Pos - Eintragungsformular</title>
 	</head>
-	<body onload="set_select();">
+	<body>
 		<header>
 			<h1 class="header">Willkommen, <span id="username"></span></h1>
 			<p><a href="/p_klausuren">zurück zur Klausurübersicht</a><br>
@@ -26,7 +26,7 @@
 						<th>Benutzername</th>
 						<th>Noten</th>
 					</tr>
-					<script>
+				<!--	<script>
 						const input= document.querySelector('input[name="grades"]');
 
 						input.addEventListener('invalid', function(event){
@@ -38,23 +38,9 @@
 						input.addEventListener('change', function(event){
 							event.target.set.CustomValidity('');
 						})
-
-
-
-						function reload() {
-							var select = document.getElementById('select');
-							var value = select.options[select.selectedIndex].value;
-							sessionStorage.setItem("subject", value);
-							location.reload();
-						}
-
-						function set_select() {
-							 var last_selected = sessionStorage.getItem("subject");
-							 document.getElementById('select').value = last_selected;
-						}
-					</script>
+				</script>	--!>
 				</table>
-			<button name="submit" type="submit" id="absenden" >Absenden</button>
+				<button name="submit" type="submit" id="absenden" >Absenden</button>
 			</form>
 
 			<!-- <script>
