@@ -595,17 +595,19 @@ def benutzer_loeschen():
 @app.route("/notenverwaltung")
 def notenverwaltung():
     if check_status('Administrator') == 200:
-        checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Note löschen</option><option>Note bearbeiten</option></select></select>'
+        # checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Note löschen</option><option>Note bearbeiten</option></select></select>'
         datei    = readhtml('administrator_noten.html')
         db       = connect_to_db()
         find_db  = db['noten'].find() # get all grades from ,,noten"
         string   = ''
+        zeile = 0
         for obj_note in find_db:
             if obj_note is None:
                 break
             subject = obj_note['subject']
             grade   = str(obj_note['mark'])
             date    = format_date(str(obj_note['date']))
+            zeile = zeile + 1
             users   = db['user'].find({'_id': obj_note['stud_id']}) # get student from ,,user"
             for user in users:
                 if user is None:
@@ -618,11 +620,47 @@ def notenverwaltung():
                 if prof is None:
                     break
                 prof_username = prof['username']
-            string += '<tr><td>' + username + '</td><td>' + email + '</td><td>' + faculty + '</td><td>' + subject + '</td><td>' + grade + '</td><td>' + prof_username + '</td><td>' + date + '</td><td>' + checkbox + '</td></tr>'
+            string += '<tr><td>' + str(zeile) + '</td><td>' + username + '</td><td>' + email + '</td><td>' + faculty + '</td><td>' + subject + '</td><td>' + grade + '</td><td>' + prof_username + '</td><td>' + date + '</td></tr>'
         datei = re.sub('</tr>', '</tr>' + string, datei)  # fill the table with content
     else:
         datei = check_status('Administrator')
     return datei
+
+@app.route("/noten_action", methods = ['POST'])
+def noten_action():
+    if request.method == 'POST':
+        if request.form['submitButton'] == 'submit':
+            db = connect_to_db()
+            find_db = db['noten'].find()  # get all exams from ,,klausuren"
+            if int(request.form['nummer']) > len(list(find_db)):
+                return flask.make_response(
+                    '''<h2>Die Zeile existiert nicht, versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>''')
+            else:
+                request_number = int(request.form['nummer']) - 1
+                find_note = db['noten'].find()  # get all grades from ,,noten"
+                stud_id = find_note[request_number]['stud_id']
+                subject = find_note[request_number]['subject']
+                mark = find_note[request_number]['mark']
+                find_student = db['user'].find({'_id': stud_id})
+                student = find_student[0]['username']
+                if request.form['actions'] == 'loeschen':
+                    return flask.make_response('<form method="POST" action="note_loeschen" name="note_loeschen"><h2>Geben Sie bitte Name vom Student (' + student + '), für den Sie die Note löschen möchten und Name vom Fach (' + subject + '), ein:</h2>'
+                                                                                                                    '<input name="' + student + '" type="text" size="15" maxlength="20" placeholder="Student" required=true><br>'
+                                                                                                                    '<input name="' + subject + '" type="text" size="15" maxlength="40" placeholder="Fach" required=true><br>'
+                                                                                                                    '<p>Bestätigen bitte Sie auch, dass Sie ' + session['username'] + ' sind:</p>'
+                                                                                                                    '<input name="my_user" type="text" size="15" maxlength="20" placeholder="Ihr Benutzername" required=true><br>'
+                                                                                                                    '<input name="my_passwd" type="password" size="15" maxlength="20" placeholder="Ihr Passwort" required=true><br>'
+                                                                                                                    '<button name="submitButton" tpye="submit" id="passwordSubmit">bestätigen</button><br></form>')
+                elif request.form['actions'] == 'bearbeiten':
+                    return flask.make_response('<form method="POST" action="note_bearbeiten" name="note_bearbeiten"><h2>Geben Sie bitte Name vom Student (' + student + '), für den Sie die Note ändern möchten, Name vom Fach (' + subject + ') und die neue Note, ein:</h2>'
+                                                                                                                    '<input name="' + student + '" type="text" size="15" maxlength="20" placeholder="Student" required=true><br>'
+                                                                                                                    '<input name="' + subject + '" type="text" size="15" maxlength="40" placeholder="Fach" required=true><br>'
+                                                                                                                    '<input type="number" step="0.1" id="grades" name="note" min="1" max="5" placeholder="Note" required>'
+                                                                                                                    '<p>Bestätigen bitte Sie auch, dass Sie ' + session['username'] + ' sind:</p>'
+                                                                                                                    '<input name="my_user" type="text" size="15" maxlength="20" placeholder="Ihr Benutzername" required=true><br>'
+                                                                                                                    '<input name="my_passwd" type="password" size="15" maxlength="20" placeholder="Ihr Passwort" required=true><br>'
+                                                                                                                    '<button name="submitButton" tpye="submit" id="passwordSubmit">bestätigen</button><br></form>')
+    return flask.redirect("/notenverwaltung")
 
 
 @app.route("/faecherverwaltung")
