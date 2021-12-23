@@ -25,13 +25,13 @@
 <p>Falls Sie &Auml;ndereungen vornehmen wollen, geben Sie bitte die Zeile, in der sich das Fach befindet, ein. Au&szlig;erdem w&auml;hlen Sie bitte die Aktion aus</p>
 <form method="POST" action="faecher_action" name="action">
     <h3>Zeilennummer: </h3>
-    <input type="number" step="0.1" id="zeile" name="nummer" min="1" required>
+    <input type="number" step="0.1" id="zeile" name="nummer" min="1">
     <select name="actions" id="actions">
         <option value="" disabled selected hidden>W&auml;hlen Sie aus...</option>
         <option value="zuweisen">Professor zuweisen</option>
     </select><br><br>
     <button name="submitButton" tpye="submit" id="ausfuehren" value="submit">ausf&uuml;hren</button>
-    <button name="submitButton" tpye="submit" id="abbrechen"><a href="/administrator">abbrechen</a></button>
+    <button name="submitButton" tpye="cancel" id="abbrechen" value="cancel">abbrechen</button>
 </form>
 
 <div class="logout">
