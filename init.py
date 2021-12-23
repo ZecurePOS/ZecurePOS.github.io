@@ -219,46 +219,46 @@ def noteneinsicht():
 # student kann seine noten herunterladen (lädt noten aller studenten herunter)
 @app.route('/download_pdf', methods = ['POST'])
 def download_pdf():
-	db = connect_to_db()
-	# generate preamble
-	preamble = r'''
-		\documentclass[a4paper,12pt]{article}
-		\begin{document}
-		\begin{table}[h!]
-		\begin{tabular}{c c c}
-	'''
-	# generate end of file
-	ending = r'''
-		\end{tabular}
-		\end{table}
-		\end{document}
-	'''
-	table  = r'''''' # raw multiline string
-	studis = db['user'].find({'role': 'Student'})
-	# for each studi get username and grade
-	# this is not nice code but it is necessary because our db model sucks
-	for studi in studis:
-		for subj in db['klausuren'].find():
-			for reg_student in subj['registered_students']:
-				#if reg_student == studi['_id']:
-					grades = db['noten'].find({'stud_id' : studi['_id'], 'subject' : subj['subject'], "mark": {"$exists": True}})
-					for grade in grades:
-						#print(grade)
-						# generate latex-table from matrikelnr (which is username), subject and grade
-						table += studi['username'] + r''' & ''' + subj['subject'] + r''' & ''' + str(grade['mark']) + r'''\\ '''
-	# bake tex file
-	tex_file = preamble + table + ending
-	# write out
-	file = open('latex/'+session['username']+'_noten.tex', 'w')
-	file.write(tex_file)
-	file.close()
-	# compile to pdf
-	os.system('pdflatex -output-directory latex/ latex/'+session['username']+'_noten.tex')
-	# download the pdf
+    db = connect_to_db()
+    # generate preamble
+    preamble = r'''
+        \documentclass[a4paper,12pt]{article}
+        \begin{document}
+        \begin{table}[h!]
+        \begin{tabular}{c c c}
+    '''
+    # generate end of file
+    ending = r'''
+        \end{tabular}
+        \end{table}
+        \end{document}
+    '''
+    table  = r'''''' # raw multiline string
+    studis = db['user'].find({'role': 'Student'})
+    # for each studi get username and grade
+    # this is not nice code but it is necessary because our db model sucks
+    for studi in studis:
+        for subj in db['klausuren'].find():
+            for reg_student in subj['registered_students']:
+                #if reg_student == studi['_id']:
+                    grades = db['noten'].find({'stud_id' : studi['_id'], 'subject' : subj['subject'], "mark": {"$exists": True}})
+                    for grade in grades:
+                        #print(grade)
+                        # generate latex-table from matrikelnr (which is username), subject and grade
+                        table += studi['username'] + r''' & ''' + subj['subject'] + r''' & ''' + str(grade['mark']) + r'''\\ '''
+    # bake tex file
+    tex_file = preamble + table + ending
+    # write out
+    file = open('latex/'+session['username']+'_noten.tex', 'w')
+    file.write(tex_file)
+    file.close()
+    # compile to pdf
+    os.system('pdflatex -output-directory latex/ latex/'+session['username']+'_noten.tex')
+    # download the pdf
     path = 'latex/'+session['username']+'_noten.pdf'
     send_file(path,as_attachment=True)
     # redirect to "noteneinsicht"
-	return flask.redirect('/noteneinsicht')
+    return flask.redirect('/noteneinsicht')
 
 
 # student kann sich hier für klausur einschreiben
