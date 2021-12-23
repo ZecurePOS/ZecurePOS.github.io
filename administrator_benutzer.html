@@ -24,7 +24,7 @@
     <br>
 </form><br>
 <p>Falls Sie &Auml;ndereungen vornehmen wollen, geben Sie bitte die Zeile, in der der Benutzer sich befindet, ein. Au&szlig;erdem w&auml;hlen Sie bitte die Aktion aus</p>
-<form method="POST" action="benutzer_action" name="action">
+<form method="POST" action="benutzer_action" name="action" >
     <h3>Zeilennummer: </h3>
     <input type="number" step="0.1" id="zeile" name="nummer" min="1" required>
     <select name="actions" id="actions">
@@ -33,7 +33,7 @@
     <option value="passwort">Passwort ersetzen</option>
     <option value="loeschen">L&ouml;schen</option>
 </select><br><br>
-<button name="submitButton" tpye="submit" id="ausfuehren" value="submit">ausführen</button>
+<button name="submitButton" tpye="submit" id="ausfuehren" value="submit" >ausführen</button>
 <button name="submitButton" tpye="submit" id="abbrechen"><a href="/administrator">abbrechen</a></button>
 </form>
 <div class="logout">
