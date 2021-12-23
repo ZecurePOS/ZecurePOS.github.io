@@ -6,6 +6,7 @@ import flask
 from flask import session
 import re
 import os
+from flask import send_file
 
 # GLOBALS
 db = None
@@ -94,7 +95,7 @@ def load_dropdown(datei, klausuren, selected = ''):
     for klausur in klausuren:
         subjects.append(klausur['subject'])
     unique_subjects = set(subjects)
-    subject_list = ''
+    subject_list    = ''
     for unique_subject in unique_subjects:
         if unique_subject == selected:
             subject_list += '<option value="' + unique_subject + '" selected>' + unique_subject + '</option>'
@@ -232,7 +233,7 @@ def download_pdf():
 		\end{table}
 		\end{document}
 	'''
-	table = r'''''' # raw multiline string
+	table  = r'''''' # raw multiline string
 	studis = db['user'].find({'role': 'Student'})
 	# for each studi get username and grade
 	# this is not nice code but it is necessary because our db model sucks
@@ -242,19 +243,21 @@ def download_pdf():
 				#if reg_student == studi['_id']:
 					grades = db['noten'].find({'stud_id' : studi['_id'], 'subject' : subj['subject'], "mark": {"$exists": True}})
 					for grade in grades:
-						print(grade)
-						# generate latex-table from matrikelnr (which is username), subject and grade 
+						#print(grade)
+						# generate latex-table from matrikelnr (which is username), subject and grade
 						table += studi['username'] + r''' & ''' + subj['subject'] + r''' & ''' + str(grade['mark']) + r'''\\ '''
-	# bake tex file		
+	# bake tex file
 	tex_file = preamble + table + ending
 	# write out
-	file = open('latex/noten.tex', 'w')
+	file = open('latex/'+session['username']+'_noten.tex', 'w')
 	file.write(tex_file)
 	file.close()
 	# compile to pdf
-	os.system("pdflatex -output-directory latex/ latex/noten.tex")
+	os.system('pdflatex -output-directory latex/ latex/'+session['username']+'_noten.tex')
 	# download the pdf
-	# redirect to "noteneinsicht"
+    path = 'latex/'+session['username']+'_noten.pdf'
+    send_file(path,as_attachment=True)
+    # redirect to "noteneinsicht"
 	return flask.redirect('/noteneinsicht')
 
 
@@ -285,11 +288,11 @@ def klausuren():
 @app.route('/anmelden', methods = ['POST'])
 def anmelden():
     checkboxes = request.form.getlist('scales[]')
-    print(checkboxes)
+    #print(checkboxes)
     # insert checked subjects into db
-    db = connect_to_db()
+    db   = connect_to_db()
     user = db['user'].find({'username': session['username']})[0]
-    print(user)
+    #print(user)
     # for each subject in checkboxes do
     for subject in checkboxes:
         db_subject = db['klausuren'].find({'subject': subject})
@@ -311,6 +314,7 @@ def professor():
 
 
 # als prof noten der studis eintragen
+# FIXED
 @app.route('/insert_grades', methods = ['POST'])
 def insert_grades():
     #db = connect_to_db()
@@ -321,7 +325,6 @@ def insert_grades():
 
 
 # lädt alle noten der studis, die für das mit dem dropdown menu ausgewählte fach angemeldet sind, so dass der professor dort die noten eintragen kann
-# this is still horror
 @app.route("/p_noten")
 def noten():
     if check_status('Professor') != 200: # if not logged in as professor
@@ -336,7 +339,7 @@ def noten():
     displayed = ''
     if (session.get('subject')): # if subject in the dropdown menu has been selected, only display such subjects
         selected = str(session['subject'])
-        datei = load_dropdown(datei, klausuren, selected)
+        datei    = load_dropdown(datei, klausuren, selected)
     else:
         datei = load_dropdown(datei, klausuren)
         return datei
@@ -354,14 +357,6 @@ def noten():
             continue
         # now we are save and not causing errors
         noten = db['noten'].find({'stud_id': student['_id'], 'subject': klausur['subject']}) # get the grades
-        print("len:  ", len(list(noten)))
-        print("list: ", list(noten))
-        print("noten:", noten)
-        try:
-            for note in noten:
-                print("note: ", note)
-        except:
-            print("error")
         if (len(list(noten)) < 1): # if grade not in db, display field to enter grade
             displayed = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
         else: # else display the grade itself (THIS DOES NOT WORK YET AND IT NEEDS TO BE FIXED)
@@ -440,7 +435,7 @@ def benutzer():
 def benutzer_action():
     if request.method == 'POST':
         if request.form['submitButton'] == 'submit':
-            db = connect_to_db()
+            db      = connect_to_db()
             find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
             if int(request.form['nummer']) > len(list(find_db)):
                 return flask.make_response(
@@ -448,9 +443,9 @@ def benutzer_action():
             else:
                 request_number = int(request.form['nummer']) - 1
                 if request.form['actions'] == 'rolle':
-                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
-                    username = find_db[request_number]['username']
-                    role = find_db[request_number]['role']
+                    find_db    = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    username   = find_db[request_number]['username']
+                    role       = find_db[request_number]['role']
                     return flask.make_response(
                         '<form method="POST" action="rolle_zuweisen" name="rolle_zuweisen" name="' + username + '"><h2>Geben Sie bitte den Benutzername (' + username + ') und die neue gewünschte Rolle ein:</h2>'
                                                                                                                       '<input name="' + username + '" type="text" size="15" maxlength="40" placeholder="Benutzername" required=true><br>'
@@ -471,7 +466,7 @@ def benutzer_action():
                         return flask.make_response(
                             '''<h2>Rollenzuweisung ist für für neu registrierte Benutzer (Studenten) möglich, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
                 elif request.form['actions'] == 'passwort':
-                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    find_db  = db['user'].find()  # hole alle Benutzer aus der Datenbank
                     username = find_db[request_number]['username']
                     return flask.make_response(
                         '<form method="POST" action="passwort_ersetzen" name="passwort_ersetzen" name="' + username + '"><h2>Geben Sie bitte den Benutzername (' + username + ') und das neue Passwort ein:</h2>'
@@ -483,7 +478,7 @@ def benutzer_action():
                                                                                                                       '<br><button name="submitButton" type="submit" id="passwordSubmit">bestätigen</button></form>')
 
                 elif request.form['actions'] == 'loeschen':
-                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    find_db  = db['user'].find()  # hole alle Benutzer aus der Datenbank
                     username = find_db[request_number]['username']
                     return flask.make_response(
                         '<form method="POST" action="benutzer_loeschen" name="benutzer_loeschen" name="' + username + '"><h2>Geben Sie bitte den Benutzername (' + username + ') ein:</h2>'
@@ -498,15 +493,15 @@ def benutzer_action():
 def rolle_zuweisen():
     if request.method == 'POST':
         my_passwd = hash_passwd(request.form['my_passwd'])
-        db = connect_to_db()
-        keys1 = request.form.keys()
-        keys2 = []
+        db        = connect_to_db()
+        keys1     = request.form.keys()
+        keys2     = []
         for key in keys1:
             keys2.append(key)
-        print(session['username'])
-        print(my_passwd)
+        #print(session['username'])
+        #print(my_passwd)
         find_admin = db['user'].find({'username': session['username']} or {'role': 'Administrator'})
-        print(find_admin[0])
+        #print(find_admin[0])
         if find_admin[0]['username'] == request.form['my_user'] and find_admin[0]['passwd'] == my_passwd:
             if str(keys2[0]) == request.form[keys2[0]]:
                 find_user = db['user'].find({'username': request.form[keys2[0]]})
@@ -535,9 +530,9 @@ def rolle_zuweisen():
 def passwort_ersetzen():
     if request.method == 'POST':
         my_passwd = hash_passwd(request.form['my_passwd'])
-        db = connect_to_db()
-        keys1 = request.form.keys()
-        keys2 = []
+        db        = connect_to_db()
+        keys1     = request.form.keys()
+        keys2     = []
         for key in keys1:
             keys2.append(key)
         find_admin = db['user'].find({'username': session['username']} or {'role': 'Administrator'})
@@ -565,9 +560,9 @@ def passwort_ersetzen():
 def benutzer_loeschen():
     if request.method == 'POST':
         my_passwd = hash_passwd(request.form['my_passwd'])
-        db = connect_to_db()
-        keys1 = request.form.keys()
-        keys2 = []
+        db        = connect_to_db()
+        keys1     = request.form.keys()
+        keys2     = []
         for key in keys1:
             keys2.append(key)
         find_admin = db['user'].find({'username': session['username']} or {'role': 'Administrator'})
@@ -575,7 +570,7 @@ def benutzer_loeschen():
             if str(keys2[0]) == request.form[keys2[0]]:
                 find_user = db['user'].find({'username': request.form[keys2[0]]})
                 if len(list(find_user)) > 0:
-                    find_user = db['user'].find({'username': request.form[keys2[0]]})
+                    find_user    = db['user'].find({'username': request.form[keys2[0]]})
                     userToDelete = find_user[0]
                     db['user'].delete_one(userToDelete)
                     return flask.make_response(
@@ -632,13 +627,13 @@ def faecherverwaltung():
         # checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Professor zuweisen</option></select>'
         db       = connect_to_db()
         string   = ''
-        zeile = 0
-        find_db = db['klausuren'].find({"subject": {"$exists": True}})  # get all subjects from ,,klausur"
+        zeile    = 0
+        find_db  = db['klausuren'].find({"subject": {"$exists": True}})  # get all subjects from ,,klausur"
         for obj_fach in find_db:
             if obj_fach is None:
                 break
             subject = obj_fach['subject']
-            zeile = zeile + 1
+            zeile   = zeile + 1
             profs   = db['user'].find({'_id': obj_fach['prof_id']}) # get profId from ,,user"
             for obj_user in profs:
                 if obj_user is None:
@@ -663,9 +658,9 @@ def faecher_action():
                 request_number = int(request.form['nummer']) - 1
                 if request.form['actions'] == 'zuweisen':
                     find_fach = db['klausuren'].find()  # get all exams from ,,klausuren"
-                    fach = find_fach[request_number]['subject']
-                    find_db = db['user'].find({'role': 'Professor'})  # get all profs from ,,user"
-                    profs = []
+                    fach      = find_fach[request_number]['subject']
+                    find_db   = db['user'].find({'role': 'Professor'})  # get all profs from ,,user"
+                    profs     = []
                     for obj_prof in find_db:
                         if obj_prof is None:
                             break
@@ -688,9 +683,9 @@ def faecher_action():
 def fach_zuweisen():
     if request.method == 'POST':
         my_passwd = hash_passwd(request.form['my_passwd'])
-        db = connect_to_db()
-        keys1 = request.form.keys()
-        keys2 = []
+        db        = connect_to_db()
+        keys1     = request.form.keys()
+        keys2     = []
         for key in keys1:
             keys2.append(key)
         find_admin = db['user'].find({'username': session['username']} and {'role': 'Administrator'})

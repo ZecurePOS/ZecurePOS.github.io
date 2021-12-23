@@ -1,58 +1,44 @@
 <!DOCTYPE html5>
 <html lang="en">
-	<head>
-		<meta charset="utf-8">
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<link rel=stylesheet type=text/css href="static/style.css" />
-		<title>Secure Pos - Eintragungsformular</title>
-	</head>
-	<body>
-		<header>
-			<h1 class="header">Willkommen, <span id="username"></span></h1>
-			<p><a href="/p_klausuren">zurück zur Klausurübersicht</a><br>
-			<p><a href="/professor">zurück zur Startseite</a></p>
-		</header>
-		<main>
-			<br>
-			<form method="post" action="/reload">
-				<select id="select" name="faecher" onchange="/reload"></select>
-				<button type="submit" name="submit">Aktualisieren</button>
-			</form>
-			<br><br>
-			<form method="post" action="/insert_grades">
-				<table id="notenFormular">
-					<tr>
-						<th>Klausur</th>
-						<th>Benutzername</th>
-						<th>Noten</th>
-					</tr>
-				<!--	<script>
-						const input= document.querySelector('input[name="grades"]');
 
-						input.addEventListener('invalid', function(event){
-							if(event.target.validity.valueMissing){
-								event.target.setCustomValidity('dafuq');
-							}
-						})
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel=stylesheet type=text/css href="static/style.css" />
+	<title>Secure Pos - Eintragungsformular</title>
+</head>
 
-						input.addEventListener('change', function(event){
-							event.target.set.CustomValidity('');
-						})
-				</script>	--!>
-				</table>
-				<button name="submit" type="submit" id="absenden" >Absenden</button>
-			</form>
+<body>
+	<header>
+		<h1 class="header">Willkommen, <span id="username"></span></h1>
+		<p><a href="/professor">zurück zur Startseite</a></p>
+	</header>
+	<main>
+		<br>
+		<form method="post" action="/reload">
+			<select id="select" name="faecher" onchange="/reload"></select>
+			<button type="submit" name="submit">Aktualisieren</button>
+		</form>
+		<br><br>
+		<form method="post" action="/insert_grades">
+			<table id="notenFormular">
+				<tr>
+					<th>Klausur</th>
+					<th>Benutzername</th>
+					<th>Noten</th>
+				</tr>
 
-			<!-- <script>
+			</table>
+			<button name="submit" type="submit" id="absenden">Absenden</button>
+		</form>
 
-				window.confirm("Nach dem Absenden können Sie die Noten nicht mehr ändern");
 
-			</script> --!>
-		</main>
+	</main>
 	<div class="logout">
 		<form action="/logout" method="DELETE">
 			<input type="submit" value="logout">
 		</form>
 	</div>
-	</body>
+</body>
+
 </html>
