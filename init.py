@@ -216,13 +216,14 @@ def noteneinsicht():
 @app.route('/download_pdf', methods = ['POST'])
 def download_pdf():
 	db = connect_to_db()
-	# for latex
+	# generate preamble
 	preamble = r'''
 		\documentclass[a4paper,12pt]{article}
 		\begin{document}
 		\begin{table}[h!]
 		\begin{tabular}{c c c}
 	'''
+	# generate end of file
 	ending = r'''
 		\end{tabular}
 		\end{table}
@@ -230,17 +231,18 @@ def download_pdf():
 	'''
 	table = r'''''' # raw multiline string
 	studis = db['user'].find({'role': 'Student'})
-	# for each studi get matrikelnr and noten
+	# for each studi get username and grade
+	# this is not nice code but it is necessary because our db model sucks
 	for studi in studis:
-		subjects = db['klausuren']
-		for subj in subjects:
+		for subj in db['klausuren'].find():
 			for reg_student in subj['registered_students']:
-				if reg_student['_id'] == studi['_id']:
-			# generate latex-table from matrikelnr, subjectname and grade 
-			table += studi['username'] + r''' & ''' + subj['']
-			
-	# generate preamble
-	# generate end of file
+				#if reg_student == studi['_id']:
+					grades = db['noten'].find({'stud_id' : studi['_id'], 'subject' : subj['subject'], "mark": {"$exists": True}})
+					for grade in grades:
+						print(grade)
+						# generate latex-table from matrikelnr (which is username), subject and grade 
+						table += studi['username'] + r''' & ''' + subj['subject'] + r''' & ''' + str(grade['mark']) + r'''\\ '''
+	# bake tex file		
 	tex_file = preamble + table + ending
 	# write out
 	file = open('latex/noten.tex', 'w')
