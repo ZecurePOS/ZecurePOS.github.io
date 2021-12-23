@@ -56,6 +56,9 @@ def check_auth():
 
 def check_role():
     # check ob Nutzer die richtige Rolle hat
+    db = connect_to_db()
+    find_user = db['user'].find({'username': session['username']})
+    session['role'] = find_user[0]['role']
     if session['role'] == 'Student':
         role = 'Student'
     elif session['role'] == 'Professor':
@@ -121,7 +124,7 @@ def init():
     return readhtml('login.html')
 
 
-# login 
+# login
 # leitet weiter zu student oder prof
 @app.route("/validate", methods = ['POST'])
 def validate():
@@ -282,17 +285,15 @@ def klausuren():
 @app.route('/anmelden', methods = ['POST'])
 def anmelden():
     checkboxes = request.form.getlist('scales[]')
+    print(checkboxes)
     # insert checked subjects into db
     db = connect_to_db()
     user = db['user'].find({'username': session['username']})[0]
+    print(user)
     # for each subject in checkboxes do
     for subject in checkboxes:
         db_subject = db['klausuren'].find({'subject': subject})
-        # add current users id to registered_students
-        # push modified subject into db
-        ## THIS DOESNT WORK AND IT NEEDS TO BE FIXED
-        # db.klausuren.insert_one({'subject': db_subject}, {'registered_students': user['_id']})
-    # done
+        db.klausuren.update({'subject': subject}, {'$push': {'registered_students': user['_id']} })
     return flask.redirect("/klausuren")
 
 
@@ -333,7 +334,7 @@ def noten():
     table     = ''
     selected  = ''
     displayed = ''
-    if (session.get('subject')): # if subject in the dropdown menu has been selected, only display such subjects 
+    if (session.get('subject')): # if subject in the dropdown menu has been selected, only display such subjects
         selected = str(session['subject'])
         datei = load_dropdown(datei, klausuren, selected)
     else:
@@ -448,6 +449,18 @@ def benutzer_action():
                 request_number = int(request.form['nummer']) - 1
                 if request.form['actions'] == 'rolle':
                     find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    username = find_db[request_number]['username']
+                    role = find_db[request_number]['role']
+                    return flask.make_response(
+                        '<form method="POST" action="rolle_zuweisen" name="rolle_zuweisen" name="' + username + '"><h2>Geben Sie bitte den Benutzername (' + username + ') und die neue gewünschte Rolle ein:</h2>'
+                                                                                                                      '<input name="' + username + '" type="text" size="15" maxlength="40" placeholder="Benutzername" required=true><br>'
+                                                                                                                      '<input name="' + role + '" type="text" size="15" maxlength="20" placeholder="neue Rolle" required=true><br>'
+                                                                                                                      '<p>Bestätigen bitte Sie auch, dass Sie ' + session['username'] + ' sind:</p>'
+                                                                                                                      '<input name="my_user" type="text" size="15" maxlength="20" placeholder="Ihr Benutzername" required=true><br>'
+                                                                                                                      '<input name="my_passwd" type="password" size="15" maxlength="20" placeholder="Ihr Passwort" required=true><br>'
+                                                                                                                      '<br><button name="submitButton" type="submit" id="roleSubmit">bestätigen</button></form>')
+
+                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
                     if find_db[request_number]['role'] == 'Student':
                         userId = find_db[request_number]['_id']
                         db['user'].update_one({'_id': userId}, {'$set': {'role': 'Professor'}})
@@ -461,24 +474,123 @@ def benutzer_action():
                     find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
                     username = find_db[request_number]['username']
                     return flask.make_response(
-                        '<form method="POST" action="passwort_ersetzen" name="passwort_ersetzen"><h2>Geben Sie bitte den Benutzername (' + username + ') und das neue Passwort ein:.</h2><input name="user" type="text" size="15" maxlength="20" placeholder="Benutzername" required=true><br><input name="passwd" type="password" size="15" maxlength="20" placeholder="Passwort" required=true><br><button name="submitButton" tpye="submit" id="passwordSubmit">bestätigen</button></form>')
+                        '<form method="POST" action="passwort_ersetzen" name="passwort_ersetzen" name="' + username + '"><h2>Geben Sie bitte den Benutzername (' + username + ') und das neue Passwort ein:</h2>'
+                                                                                                                      '<input name="' + username + '" type="text" size="15" maxlength="20" placeholder="Benutzername" required=true><br>'
+                                                                                                                      '<input name="passwd" type="password" size="15" maxlength="20" placeholder="Passwort" required=true>'
+                                                                                                                      '<p>Bestätigen bitte Sie auch, dass Sie ' + session['username'] + ' sind:</p>'
+                                                                                                                      '<input name="my_user" type="text" size="15" maxlength="20" placeholder="Ihr Benutzername" required=true><br>'
+                                                                                                                      '<input name="my_passwd" type="password" size="15" maxlength="20" placeholder="Ihr Passwort" required=true><br>'
+                                                                                                                      '<br><button name="submitButton" type="submit" id="passwordSubmit">bestätigen</button></form>')
 
                 elif request.form['actions'] == 'loeschen':
-                    find_db = db['user'].find()
-                    userToDelete = find_db[request_number]
-                    db['user'].delete_one(userToDelete)
+                    find_db = db['user'].find()  # hole alle Benutzer aus der Datenbank
+                    username = find_db[request_number]['username']
+                    return flask.make_response(
+                        '<form method="POST" action="benutzer_loeschen" name="benutzer_loeschen" name="' + username + '"><h2>Geben Sie bitte den Benutzername (' + username + ') ein:</h2>'
+                                                                                                                      '<input name="' + username + '" type="text" size="15" maxlength="20" placeholder="Benutzername" required=true><br>'
+                                                                                                                      '<p>Bestätigen bitte Sie auch, dass Sie ' + session['username'] + ' sind:</p>'
+                                                                                                                      '<input name="my_user" type="text" size="15" maxlength="20" placeholder="Ihr Benutzername" required=true><br>'
+                                                                                                                      '<input name="my_passwd" type="password" size="15" maxlength="20" placeholder="Ihr Passwort" required=true><br>'
+                                                                                                                      '<br><button name="submitButton" type="submit" id="deleteSubmit">bestätigen</button></form>')
     return flask.redirect("/benutzerverwaltung")
+
+@app.route("/rolle_zuweisen", methods = ['POST'])
+def rolle_zuweisen():
+    if request.method == 'POST':
+        my_passwd = hash_passwd(request.form['my_passwd'])
+        db = connect_to_db()
+        keys1 = request.form.keys()
+        keys2 = []
+        for key in keys1:
+            keys2.append(key)
+        print(session['username'])
+        print(my_passwd)
+        find_admin = db['user'].find({'username': session['username']} or {'role': 'Administrator'})
+        print(find_admin[0])
+        if find_admin[0]['username'] == request.form['my_user'] and find_admin[0]['passwd'] == my_passwd:
+            if str(keys2[0]) == request.form[keys2[0]]:
+                find_user = db['user'].find({'username': request.form[keys2[0]]})
+                if len(list(find_user)) > 0:
+                    find_user = db['user'].find({'username': request.form[keys2[0]]})
+                    if request.form[keys2[1]] != 'Student' and request.form[keys2[1]] != 'Professor' and request.form[keys2[1]] != 'Administrator':
+                        return flask.make_response(
+                            '''<h2>die eingegebene Rolle kann im System nicht gefunden werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+                    db['user'].update_one({'username': request.form[keys2[0]]}, {'$set': {'role': request.form[keys2[1]]}})
+                    return flask.make_response(
+                        '''<h2>Die Rolle wurde erfolgreich aktualisiert. <a href="/benutzerverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+                else:
+                    return flask.make_response(
+                        '''<h2>Benutzer kann nicht gefunden werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+            else:
+                return flask.make_response(
+                    '''<h2>Der eingegebene Benutzername stimmt mit dem Buntzer, für den Sie das Konto löschen möchten, nicht überein. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+        else:
+            return flask.make_response(
+                '''<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+    return flask.make_response(
+        '''<h2>Die Rolle konnte nicht aktualisiert werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+
 
 @app.route("/passwort_ersetzen", methods = ['POST'])
 def passwort_ersetzen():
     if request.method == 'POST':
+        my_passwd = hash_passwd(request.form['my_passwd'])
         db = connect_to_db()
-        pw = hash_passwd(request.form['passwd'])
-        db['user'].update_one({'username': request.form['user']}, {'$set': {'passwd': pw}})
-        return flask.make_response(
-            '''<h2>Das Passwort wurde erfolgreich aktualisiert. <a href="/benutzerverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+        keys1 = request.form.keys()
+        keys2 = []
+        for key in keys1:
+            keys2.append(key)
+        find_admin = db['user'].find({'username': session['username']} or {'role': 'Administrator'})
+        if find_admin[0]['username'] == request.form['my_user'] and find_admin[0]['passwd'] == my_passwd:
+            if str(keys2[0]) == request.form[keys2[0]]:
+                find_user = db['user'].find({'username': request.form[keys2[0]]})
+                if len(list(find_user)) > 0:
+                    pw = hash_passwd(request.form['passwd'])
+                    db['user'].update_one({'username': request.form[keys2[0]]}, {'$set': {'passwd': pw}})
+                    return flask.make_response(
+                        '''<h2>Das Passwort wurde erfolgreich aktualisiert. <a href="/benutzerverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+                else:
+                    return flask.make_response(
+                        '''<h2>Benutzer kann nicht gefunden werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+            else:
+                return flask.make_response(
+                    '''<h2>Der eingegebene Benutzername stimmt mit dem Buntzer, für den Sie das Passwort ändern möchten, nicht überein. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+        else:
+            return flask.make_response(
+                '''<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
     return flask.make_response(
         '''<h2>Das Passwort konnte nicht aktualisiert werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+
+@app.route("/benutzer_loeschen", methods = ['POST'])
+def benutzer_loeschen():
+    if request.method == 'POST':
+        my_passwd = hash_passwd(request.form['my_passwd'])
+        db = connect_to_db()
+        keys1 = request.form.keys()
+        keys2 = []
+        for key in keys1:
+            keys2.append(key)
+        find_admin = db['user'].find({'username': session['username']} or {'role': 'Administrator'})
+        if find_admin[0]['username'] == request.form['my_user'] and find_admin[0]['passwd'] == my_passwd:
+            if str(keys2[0]) == request.form[keys2[0]]:
+                find_user = db['user'].find({'username': request.form[keys2[0]]})
+                if len(list(find_user)) > 0:
+                    find_user = db['user'].find({'username': request.form[keys2[0]]})
+                    userToDelete = find_user[0]
+                    db['user'].delete_one(userToDelete)
+                    return flask.make_response(
+                        '''<h2>Das Konto wurde erfolgreich gelöscht. <a href="/benutzerverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+                else:
+                    return flask.make_response(
+                        '''<h2>Benutzer kann nicht gefunden werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+            else:
+                return flask.make_response(
+                    '''<h2>Der eingegebene Benutzername stimmt mit dem Buntzer, für den Sie das Konto löschen möchten, nicht überein. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+        else:
+            return flask.make_response(
+                '''<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
+    return flask.make_response(
+        '''<h2>Das Konto konnte nicht gelöscht werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>''')
 
 @app.route("/notenverwaltung")
 def notenverwaltung():
@@ -486,7 +598,7 @@ def notenverwaltung():
         checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Note löschen</option><option>Note bearbeiten</option></select></select>'
         datei    = readhtml('administrator_noten.html')
         db       = connect_to_db()
-        find_db  = db['noten'].find() # hole alle Noten aus der Datenbank
+        find_db  = db['noten'].find() # get all grades from ,,noten"
         string   = ''
         for obj_note in find_db:
             if obj_note is None:
@@ -494,20 +606,20 @@ def notenverwaltung():
             subject = obj_note['subject']
             grade   = str(obj_note['mark'])
             date    = format_date(str(obj_note['date']))
-            users   = db['user'].find({'_id': obj_note['stud_id']}) # hole Studentendaten anhand ihrer Id
+            users   = db['user'].find({'_id': obj_note['stud_id']}) # get student from ,,user"
             for user in users:
                 if user is None:
                     break
                 username = user['username']
                 email    = user['email']
                 faculty  = user['faculty']
-            profs = db['user'].find({'_id': obj_note['prof_id']}) # hole Professorendaten anhand ihrer Id
+            profs = db['user'].find({'_id': obj_note['prof_id']}) # get prof from ,,user"
             for prof in profs:
                 if prof is None:
                     break
                 prof_username = prof['username']
             string += '<tr><td>' + username + '</td><td>' + email + '</td><td>' + faculty + '</td><td>' + subject + '</td><td>' + grade + '</td><td>' + prof_username + '</td><td>' + date + '</td><td>' + checkbox + '</td></tr>'
-        datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
+        datei = re.sub('</tr>', '</tr>' + string, datei)  # fill the table with content
     else:
         datei = check_status('Administrator')
     return datei
@@ -519,21 +631,21 @@ def faecherverwaltung():
         datei    = readhtml('administrator_faecher.html')
         # checkbox = '<select name="actions" id="actions"><option value="" disabled selected hidden>Wählen Sie aus...</option><option>Professor zuweisen</option></select>'
         db       = connect_to_db()
-        find_db  = db['klausuren'].find() # hole alle Klausuren aus der Datenbank
         string   = ''
         zeile = 0
+        find_db = db['klausuren'].find({"subject": {"$exists": True}})  # get all subjects from ,,klausur"
         for obj_fach in find_db:
             if obj_fach is None:
                 break
-            zeile = zeile + 1
             subject = obj_fach['subject']
-            profs   = db['user'].find({'_id': obj_fach['prof_id']}) # hole Professorendaten anhand ihrer Id
+            zeile = zeile + 1
+            profs   = db['user'].find({'_id': obj_fach['prof_id']}) # get profId from ,,user"
             for obj_user in profs:
                 if obj_user is None:
                     break
                 prof = obj_user['username']
             string += '<tr><td>' + str(zeile) + '</td><td>' + subject + '</td><td>' + prof + '</td></tr>'
-        datei = re.sub('</tr>', '</tr>' + string, datei)  # fülle die tabelle mit inhalt
+        datei = re.sub('</tr>', '</tr>' + string, datei)  # fill the table with content
     else:
         datei = check_status('Administrator')
     return datei
@@ -543,18 +655,16 @@ def faecher_action():
     if request.method == 'POST':
         if request.form['submitButton'] == 'submit':
             db = connect_to_db()
-            find_db = db['klausuren'].find()  # hole alle Klausuren aus der Datenbank
+            find_db = db['klausuren'].find()  # get all exams from ,,klausuren"
             if int(request.form['nummer']) > len(list(find_db)):
                 return flask.make_response(
                     '''<h2>Die Zeile existiert nicht, versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
             else:
                 request_number = int(request.form['nummer']) - 1
                 if request.form['actions'] == 'zuweisen':
-                    find_fach = db['klausuren'].find()  # hole alle Klausuren aus der Datenbank
+                    find_fach = db['klausuren'].find()  # get all exams from ,,klausuren"
                     fach = find_fach[request_number]['subject']
-                    find_db = db['user'].find({'role': 'Professor'})  # hole alle Professoren aus der Datenbank
-                    # print(len(list(find_db)))
-                    counter = 0
+                    find_db = db['user'].find({'role': 'Professor'})  # get all profs from ,,user"
                     profs = []
                     for obj_prof in find_db:
                         if obj_prof is None:
@@ -564,28 +674,45 @@ def faecher_action():
                     return flask.make_response(
                         '<form method="POST" action="fach_zuweisen" name="passwort_ersetzen">'
                         '<h2>Geben Sie bitte Name vom Fach (' + fach + ') und Name vom Professor, dem Sie das Fach zuweisen möchten, ein:</h2>'
-                                                                       '<input name="fach" type="text" size="15" maxlength="20" placeholder="Fach" required=true><br>'
+                                                                       '<input name="' + fach + '" type="text" size="15" maxlength="20" placeholder="Fach" required=true><br>'
                                                                        '<input name="prof" type="text" size="15" maxlength="40" placeholder="Prof" required=true><br>'
+                                                                        '<p>Bestätigen bitte Sie auch, dass Sie ' + session['username'] + ' sind:</p>'
+                                                                        '<input name="my_user" type="text" size="15" maxlength="20" placeholder="Ihr Benutzername" required=true><br>'
+                                                                        '<input name="my_passwd" type="password" size="15" maxlength="20" placeholder="Ihr Passwort" required=true><br>'
                                                                        '<button name="submitButton" tpye="submit" id="passwordSubmit">bestätigen</button><br>'
-                                                                       '<p>hier finden Sie eine Liste von den Professoren, die sich zurzeit im System befinden:</p><br>'
+                                                                       '<p>hier finden Sie eine Liste von den Professoren, die sich zurzeit im System befinden:</p>'
                                                                        + str_profs + '</form>')
     return flask.redirect("/faecherverwaltung")
 
 @app.route("/fach_zuweisen", methods = ['POST'])
 def fach_zuweisen():
     if request.method == 'POST':
-        if request.form['action'] == 'submit':
-            db = connect_to_db()
-            fach = request.form['fach']
-            prof = request.form['prof']
-            find_prof = db['user'].find({'username': prof})
-            profId = find_prof[0]['_id']
-            db['klausuren'].update_one({'subject': fach}, {'$set': {'prof_id': profId}})
-            return flask.make_response(
-                '''<h2>Die Aktion wurde erfolgreich ausgeführt. <a href="/faecherverwaltung">hier</a> finden Sie die Benutzerverwaltung-Seite.</h2>''')
+        my_passwd = hash_passwd(request.form['my_passwd'])
+        db = connect_to_db()
+        keys1 = request.form.keys()
+        keys2 = []
+        for key in keys1:
+            keys2.append(key)
+        find_admin = db['user'].find({'username': session['username']} and {'role': 'Administrator'})
+        if find_admin[0]['username'] == request.form['my_user'] and find_admin[0]['passwd'] == my_passwd:
+            if str(keys2[0]) == request.form[keys2[0]]:
+                fach = request.form[keys2[0]]
+                prof = request.form['prof']
+                find_prof = db['user'].find({'username': prof})
+                if len(list(find_prof)) < 1:
+                    return flask.make_response(
+                        '''<h2>Der eingegebene Professor kann im System nicht gefunden werden. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
+                find_prof = db['user'].find({'username': prof})
+                profId = find_prof[0]['_id']
+                db['klausuren'].update_one({'subject': fach}, {'$set': {'prof_id': profId}})
+                return flask.make_response(
+                        '''<h2>Die Aktion wurde erfolgreich ausgeführt. <a href="/faecherverwaltung">hier</a> finden Sie die Fächerwervaltung-Seite.</h2>''')
+            else:
+                return flask.make_response(
+                    '''<h2>Das eingegebene Fach nicht mit dem Fach, für das Sie den Professor ändern möchten, nicht überein. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
         else:
             return flask.make_response(
-                '''<h2>w&auml;hlen Sie bitte <a href="/faecherverwaltung">hier</a> die Aktion aus.</h2>''')
+                '''<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
     return flask.make_response(
         '''<h2>Die Aktion wurde nicht erfolgreich ausgeführt. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>''')
 
