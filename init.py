@@ -121,7 +121,7 @@ def init():
     return readhtml('login.html')
 
 
-# login 
+# login
 # leitet weiter zu student oder prof
 @app.route("/validate", methods = ['POST'])
 def validate():
@@ -231,14 +231,14 @@ def download_pdf():
 	table = r'''''' # raw multiline string
 	studis = db['user'].find({'role': 'Student'})
 	# for each studi get matrikelnr and noten
-	for studi in studis:
-		subjects = db['klausuren']
-		for subj in subjects:
-			for reg_student in subj['registered_students']:
-				if reg_student['_id'] == studi['_id']:
-			# generate latex-table from matrikelnr, subjectname and grade 
-			table += studi['username'] + r''' & ''' + subj['']
-			
+	#for studi in studis:
+		#subjects = db['klausuren']
+		#for subj in subjects:
+		#	for reg_student in subj['registered_students']:
+		#		if reg_student['_id'] == studi['_id']:
+			# generate latex-table from matrikelnr, subjectname and grade
+		#	table += studi['username'] + r''' & ''' + subj['']
+
 	# generate preamble
 	# generate end of file
 	tex_file = preamble + table + ending
@@ -280,17 +280,15 @@ def klausuren():
 @app.route('/anmelden', methods = ['POST'])
 def anmelden():
     checkboxes = request.form.getlist('scales[]')
+    print(checkboxes)
     # insert checked subjects into db
     db = connect_to_db()
     user = db['user'].find({'username': session['username']})[0]
+    print(user)
     # for each subject in checkboxes do
     for subject in checkboxes:
         db_subject = db['klausuren'].find({'subject': subject})
-        # add current users id to registered_students
-        # push modified subject into db
-        ## THIS DOESNT WORK AND IT NEEDS TO BE FIXED
-        # db.klausuren.insert_one({'subject': db_subject}, {'registered_students': user['_id']})
-    # done
+        db.klausuren.update({'subject': subject}, {'$push': {'registered_students': user['_id']} })
     return flask.redirect("/klausuren")
 
 
@@ -331,7 +329,7 @@ def noten():
     table     = ''
     selected  = ''
     displayed = ''
-    if (session.get('subject')): # if subject in the dropdown menu has been selected, only display such subjects 
+    if (session.get('subject')): # if subject in the dropdown menu has been selected, only display such subjects
         selected = str(session['subject'])
         datei = load_dropdown(datei, klausuren, selected)
     else:
