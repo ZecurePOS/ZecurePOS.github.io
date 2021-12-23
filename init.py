@@ -256,9 +256,7 @@ def download_pdf():
     os.system('pdflatex -output-directory latex/ latex/'+session['username']+'_noten.tex')
     # download the pdf
     path = 'latex/'+session['username']+'_noten.pdf'
-    send_file(path,as_attachment=True)
-    # redirect to "noteneinsicht"
-    return flask.redirect('/noteneinsicht')
+    return send_file(path,as_attachment=True)
 
 
 # student kann sich hier für klausur einschreiben
