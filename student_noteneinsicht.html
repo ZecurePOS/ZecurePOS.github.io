@@ -18,12 +18,14 @@
             <th>Datum</th>
         </tr>
     </table>
-    <br><br><br>
-    <input id="dlbutton" name="download" value="Download Noten PDF" type="button" />
-<div class="logout">
-    <form action="/logout" method="DELETE">
-        <input type="submit" value="logout">
-    </form>
-</div>
+    <br><br>
+	<form method="post" action="/download_pdf">
+		<button id="dlbutton" name="submit" value="submit" type="submit">Download Noten PDF</button>
+	</form>
+	<div class="logout">
+		<form action="/logout" method="DELETE">
+			<input type="submit" value="logout">
+		</form>
+	</div>
 </body>
 </html>

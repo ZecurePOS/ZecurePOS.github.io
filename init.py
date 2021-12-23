@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import flask
 from flask import session
 import re
+import os
 
 # GLOBALS
 db = None
@@ -76,17 +77,53 @@ def check_status(user_role):
             '''<h2>Sie sind nicht angemeldet, melden Sie sich bitte <a href="/">hier</a> an.</h2>''', 401)
     return answer
 
+
+# erstellt eine checkbox für ein fach (um sich als student für das fach anzumelden)
+# wird nur von "klausuren" benötigt, ist aber dennoch eine utility function
+def make_checkbox(fach):
+    return '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales[]" name="scales[]" value="' + str(fach) + '"></div>'
+
+
+# lädt das dropdown menu auf der seite "p_noten"
+# still a utility function
+def load_dropdown(datei, klausuren, selected = ''):
+    subjects = []
+    for klausur in klausuren:
+        subjects.append(klausur['subject'])
+    unique_subjects = set(subjects)
+    subject_list = ''
+    for unique_subject in unique_subjects:
+        if unique_subject == selected:
+            subject_list += '<option value="' + unique_subject + '" selected>' + unique_subject + '</option>'
+        else:
+            subject_list += '<option value="' + unique_subject + '">' + unique_subject + '</option>'
+    datei = re.sub('<select id="select" name="faecher" onchange="/reload"></select>', '<select id="select" name="faecher" onchange="/reload">' + subject_list + '</select>', datei)
+    return datei
+
+
+# lädt das dropdown menu und damit alle fächer neu
+# wird nur auf "p_noten" benötigt, deswegen utility
+@app.route("/reload", methods = ['POST'])
+def reload():
+    session['subject'] = request.form['faecher']
+    return flask.redirect("/p_noten")
+
+# etwas im code versteckt, damit es nicht gleich gefunden wird ;)
 # set the secret key.  keep this really secret:
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RThuifwebghweqijfgoew8tfuw2tr1t27&/)"ß9tg04'
 
+
 # APP-ROUTING
+
+
 @app.route("/")
 def init():
     return readhtml('login.html')
 
 
+# login 
+# leitet weiter zu student oder prof
 @app.route("/validate", methods = ['POST'])
-# login leitet weiter zu student oder prof
 def validate():
     db = connect_to_db()
     if request.method=='POST':
@@ -107,96 +144,7 @@ def validate():
     return flask.redirect("/")
 
 
-@app.route("/student")
-def student():
-    if check_status('Student') == 200:
-        datei = readhtml('student.html')
-    else:
-        datei = check_status('Student')
-    return datei
-
-
-@app.route("/noteneinsicht")
-def noteneinsicht():
-    if check_status('Student') == 200:
-        datei   = readhtml('student_noteneinsicht.html')
-        db      = connect_to_db()
-        col     = db['user']
-        find_db = col.find( {'username': session['username']} ) #hole unseren eingeloggten user
-        user    = find_db[0]
-        find_db = db['noten'].find( {'stud_id': user['_id']} ) # nur die noten vom eingeloggten user
-        string  = '' #für unsere tabelle die gefüllt wird
-        for obj_note in find_db:
-            if obj_note is None:
-                break
-            subject = str(obj_note['subject'])
-            grade   = str(obj_note['mark'])
-            date    = format_date(str(obj_note['date']))
-            string += '<tr><td>' + subject + '</td><td>' + grade + '</td><td>' + date + '</td></tr>'
-        datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
-    else:
-        datei = check_status('Student')
-    return datei
-
-
-@app.route("/klausuren")
-def klausuren():
-    if check_status('Student') == 200:
-        db       = connect_to_db()
-        usr_col  = db['user']
-        user     = usr_col.find({'username' : session['username']})  #hole unseren eingeloggten user
-        fak      = user[0]['faculty'] # welche fakultät hat der user
-        col      = db['studiengang']
-        find_db  = col.find( {'faculty': fak} ) #hole alle fächer von dieser fakulktät
-        faecher  = find_db[0]['subjects']
-        string   = ''
-        for fach in faecher:
-           string += '<tr><td>' + str(fach) + '</td><td>' + make_checkbox(fach) + '</td></tr>'
-        datei = readhtml('student_klausuren.html')
-        datei = re.sub('<span id="student_studiengang"></span>', '<span id="student_studiengang">'+fak+'</span>', datei)
-        datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
-    else:
-        datei = check_status('Student')
-    return datei
-
-def make_checkbox(fach):
-    return '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales[]" name="scales[]" value="' + str(fach) + '"></div>'
-
-@app.route('/anmelden', methods = ['POST'])
-def anmelden():
-    checkboxes = request.form.getlist('scales[]')
-    # insert checked subjects into db
-    db = connect_to_db()
-    user = db['user'].find({'username': session['username']})[0]
-    # for each subject in checkboxes do
-    for subject in checkboxes:
-        db_subject = db['klausuren'].find({'subject': subject})
-        # add current users id to registered_students
-        # push modified subject into db
-        ## THIS DOESNT WORK AND IT NEEDS TO BE FIXED
-        # db.klausuren.insert_one({'subject': db_subject}, {'registered_students': user['_id']})
-    # done
-    return flask.redirect("/klausuren")
-
-@app.route('/insert_grades', methods = ['POST'])
-def insert_grades():
-    #db = connect_to_db()
-    if request.method=='POST':
-        grades = request.form.getlist('grades[]')
-        print("grades: ", grades)
-    return flask.redirect("/p_noten")
-
-
-#@app.route("/save_subects_student", methods = ['POST'])
-# login leitet weiter zu student oder prof
-#def save_subects_student():
-#    db = connect_to_db()
-#    if request.method == 'POST':
-#        checkboxes = request.form['scales']
-#        col        = db['user']
-#        print(checkboxes)
-#    return flask.redirect("/klausuren")
-
+# neuen account registrieren
 @app.route("/register", methods = ['POST'])
 def register():
     db = connect_to_db()
@@ -227,6 +175,129 @@ def register():
     return flask.redirect("/")
 
 
+
+
+# STUDENT
+
+@app.route("/student")
+def student():
+    if check_status('Student') == 200:
+        datei = readhtml('student.html')
+    else:
+        datei = check_status('Student')
+    return datei
+
+
+# student kann seine eigenen noten einsehen
+@app.route("/noteneinsicht")
+def noteneinsicht():
+    if check_status('Student') == 200:
+        datei   = readhtml('student_noteneinsicht.html')
+        db      = connect_to_db()
+        col     = db['user']
+        find_db = col.find( {'username': session['username']} ) #hole unseren eingeloggten user
+        user    = find_db[0]
+        find_db = db['noten'].find( {'stud_id': user['_id']} ) # nur die noten vom eingeloggten user
+        string  = '' #für unsere tabelle die gefüllt wird
+        for obj_note in find_db:
+            if obj_note is None:
+                break
+            subject = str(obj_note['subject'])
+            grade   = str(obj_note['mark'])
+            date    = format_date(str(obj_note['date']))
+            string += '<tr><td>' + subject + '</td><td>' + grade + '</td><td>' + date + '</td></tr>'
+        datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
+    else:
+        datei = check_status('Student')
+    return datei
+
+
+# student kann seine noten herunterladen (lädt noten aller studenten herunter)
+@app.route('/download_pdf', methods = ['POST'])
+def download_pdf():
+	db = connect_to_db()
+	# for latex
+	preamble = r'''
+		\documentclass[a4paper,12pt]{article}
+		\begin{document}
+		\begin{table}[h!]
+		\begin{tabular}{c c c}
+	'''
+	ending = r'''
+		\end{tabular}
+		\end{table}
+		\end{document}
+	'''
+	table = r'''''' # raw multiline string
+	studis = db['user'].find({'role': 'Student'})
+	# for each studi get matrikelnr and noten
+	for studi in studis:
+		subjects = db['klausuren']
+		for subj in subjects:
+			for reg_student in subj['registered_students']:
+				if reg_student['_id'] == studi['_id']:
+			# generate latex-table from matrikelnr, subjectname and grade 
+			table += studi['username'] + r''' & ''' + subj['']
+			
+	# generate preamble
+	# generate end of file
+	tex_file = preamble + table + ending
+	# write out
+	file = open('latex/noten.tex', 'w')
+	file.write(tex_file)
+	file.close()
+	# compile to pdf
+	os.system("pdflatex -output-directory latex/ latex/noten.tex")
+	# download the pdf
+	# redirect to "noteneinsicht"
+	return flask.redirect('/noteneinsicht')
+
+
+# student kann sich hier für klausur einschreiben
+@app.route("/klausuren")
+def klausuren():
+    if check_status('Student') == 200:
+        db       = connect_to_db()
+        usr_col  = db['user']
+        user     = usr_col.find({'username' : session['username']})  #hole unseren eingeloggten user
+        fak      = user[0]['faculty'] # welche fakultät hat der user
+        col      = db['studiengang']
+        find_db  = col.find( {'faculty': fak} ) #hole alle fächer von dieser fakulktät
+        faecher  = find_db[0]['subjects']
+        string   = ''
+        for fach in faecher:
+           string += '<tr><td>' + str(fach) + '</td><td>' + make_checkbox(fach) + '</td></tr>'
+        datei = readhtml('student_klausuren.html')
+        datei = re.sub('<span id="student_studiengang"></span>', '<span id="student_studiengang">'+fak+'</span>', datei)
+        datei = re.sub('</tr>', '</tr>' + string, datei) #fülle die tabelle mit inhalt
+    else:
+        datei = check_status('Student')
+    return datei
+
+
+# zu klausur anmelden
+# übermittelt die daten von backend in die db
+@app.route('/anmelden', methods = ['POST'])
+def anmelden():
+    checkboxes = request.form.getlist('scales[]')
+    # insert checked subjects into db
+    db = connect_to_db()
+    user = db['user'].find({'username': session['username']})[0]
+    # for each subject in checkboxes do
+    for subject in checkboxes:
+        db_subject = db['klausuren'].find({'subject': subject})
+        # add current users id to registered_students
+        # push modified subject into db
+        ## THIS DOESNT WORK AND IT NEEDS TO BE FIXED
+        # db.klausuren.insert_one({'subject': db_subject}, {'registered_students': user['_id']})
+    # done
+    return flask.redirect("/klausuren")
+
+
+
+# PROFESSOR
+
+
 @app.route("/professor")
 def professor():
     if check_status('Professor') == 200:
@@ -236,6 +307,18 @@ def professor():
     return datei
 
 
+# als prof noten der studis eintragen
+@app.route('/insert_grades', methods = ['POST'])
+def insert_grades():
+    #db = connect_to_db()
+    if request.method=='POST':
+        grades = request.form.getlist('grades[]')
+        print("grades: ", grades)
+    return flask.redirect("/p_noten")
+
+
+# lädt alle noten der studis, die für das mit dem dropdown menu ausgewählte fach angemeldet sind, so dass der professor dort die noten eintragen kann
+# this is still horror
 @app.route("/p_noten")
 def noten():
     if check_status('Professor') != 200: # if not logged in as professor
@@ -278,7 +361,7 @@ def noten():
             print("error")
         if (len(list(noten)) < 1): # if grade not in db, display field to enter grade
             displayed = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
-        else: # else display the grade itself
+        else: # else display the grade itself (THIS DOES NOT WORK YET AND IT NEEDS TO BE FIXED)
             displayed = str(noten[0]['mark'])
             print("displayed: ", displayed)
         table += '<tr><td>' + selected + '</td><td>' + student['username'] + '</td><td>' + displayed + '</td></tr>'
@@ -286,27 +369,9 @@ def noten():
     return datei
 
 
-def load_dropdown(datei, klausuren, selected = ''):
-    subjects = []
-    for klausur in klausuren:
-        subjects.append(klausur['subject'])
-    unique_subjects = set(subjects)
-    subject_list = ''
-    for unique_subject in unique_subjects:
-        if unique_subject == selected:
-            subject_list += '<option value="' + unique_subject + '" selected>' + unique_subject + '</option>'
-        else:
-            subject_list += '<option value="' + unique_subject + '">' + unique_subject + '</option>'
-    datei = re.sub('<select id="select" name="faecher" onchange="/reload"></select>', '<select id="select" name="faecher" onchange="/reload">' + subject_list + '</select>', datei)
-    return datei
 
 
-@app.route("/reload", methods = ['POST'])
-def reload():
-    session['subject'] = request.form['faecher']
-    return flask.redirect("/p_noten")
-
-
+# prof kann sehen, welche klausuren er anbietet
 @app.route("/p_klausuren")
 def klaus():
     if check_status('Professor') == 200:
@@ -329,6 +394,11 @@ def klaus():
     else:
         datei = check_status('Professor')
     return datei
+
+
+
+# ADMINISTRATOR
+
 
 
 @app.route("/administrator")
