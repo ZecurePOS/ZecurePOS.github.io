@@ -354,14 +354,14 @@ def insert_grades():
             students = db['user'].find({'_id': reg_student_id})  # get the student object
             for student in students:
                 noten = db['noten'].find({'stud_id': student['_id'], 'subject': session['subject']})
-                if len(list(noten)) < 1:
+                if len(list(noten)) < 1: # check if a grade for the student already exists
                     # prepare new grade to insert
                     newDocument =  {
                         'subject': session['subject'],
                         'mark': grades[counter],
                         'prof_id': get_my_id(),
                         'stud_id': student['_id'],
-                        'date': datetime.now()
+                        'date': datetime.now() # date = current date
                     }
                     # insert new grade for student into database
                     db['noten'].insert_one(newDocument)
