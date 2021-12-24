@@ -7,6 +7,7 @@ from flask import session
 import re
 import os
 from flask import send_file
+from datetime import datetime
 
 # GLOBALS
 db = None
@@ -341,10 +342,30 @@ def professor():
 # FIXED
 @app.route('/insert_grades', methods = ['POST'])
 def insert_grades():
-    #db = connect_to_db()
+    if check_status('Professor') != 200:  # if not logged in as professor
+        return check_status('Professor')
+    db = connect_to_db()
     if request.method=='POST':
         grades = request.form.getlist('grades[]')
-        print("grades: ", grades)
+        # get the relevant data
+        counter = 0
+        klausur = db['klausuren'].find({'prof_id': get_my_id(), 'subject': session['subject']})[0]
+        for reg_student_id in klausur['registered_students']:
+            students = db['user'].find({'_id': reg_student_id})  # get the student object
+            for student in students:
+                noten = db['noten'].find({'stud_id': student['_id'], 'subject': session['subject']})
+                if len(list(noten)) < 1:
+                    # prepare new grade to insert
+                    newDocument =  {
+                        'subject': session['subject'],
+                        'mark': grades[counter],
+                        'prof_id': get_my_id(),
+                        'stud_id': student['_id'],
+                        'date': datetime.now()
+                    }
+                    # insert new grade for student into database
+                    db['noten'].insert_one(newDocument)
+                    counter = counter + 1
     return flask.redirect("/p_noten")
 
 
@@ -371,8 +392,6 @@ def noten():
     klausur = db['klausuren'].find({'prof_id': myId, 'subject': selected})[0]
     for reg_student_id in klausur['registered_students']:
         students = db['user'].find({'_id': reg_student_id}) # get the student object
-        # this part is super dumb. i cant just 'student = students[0]' cause students might not exist
-        # however students is not even None, i simply cant check if it is there
         student = {}
         try:
             student = students[0]
@@ -383,7 +402,8 @@ def noten():
         noten = db['noten'].find({'stud_id': student['_id'], 'subject': klausur['subject']}) # get the grades
         if (len(list(noten)) < 1): # if grade not in db, display field to enter grade
             displayed = '<input type="number" step="0.1" id="grades" name="grades[]" min="1" max="5" required>'
-        else: # else display the grade itself (THIS DOES NOT WORK YET AND IT NEEDS TO BE FIXED)
+        else: # else display the grade itself
+            noten = db['noten'].find({'stud_id': student['_id'], 'subject': klausur['subject']})  # get the grades
             displayed = str(noten[0]['mark'])
             print("displayed: ", displayed)
         table += '<tr><td>' + selected + '</td><td>' + student['username'] + '</td><td>' + displayed + '</td></tr>'
@@ -469,16 +489,16 @@ def benutzer_action():
                 find_db = db['user'].find()  # get all users from ,,user"
                 if request.form['nummer'] == '':
                     return flask.make_response(
-                        '<h2>Sie müssen eine Zeile eingeben, versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
+                        '<h2>Sie müssen eine Zeile eingeben, versuchen Sie bitte <a href="/administrator">hier</a> noch einmal.</h2>',
                         400)
                 keys1 = request.form.keys()
                 if len(list(keys1)) < 3:
                     return flask.make_response(
-                        '<h2>Sie müssen eine Aktion auswählen, versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
+                        '<h2>Sie müssen eine Aktion auswählen, versuchen Sie bitte <a href="/administrator">hier</a> noch einmal.</h2>',
                         400)
                 if int(request.form['nummer']) > len(list(find_db)): # if the entered line does not exist..
                     return flask.make_response(
-                        '<h2>Die Zeile existiert nicht, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                        '<h2>Die Zeile existiert nicht, versuchen Sie bitte <a href="/administrator">hier</a> noch einmal.</h2>',
                         404)
                 else:
                     request_number = int(request.form['nummer']) - 1
