@@ -482,6 +482,11 @@ def benutzer_action():
                         404)
                 else:
                     request_number = int(request.form['nummer']) - 1
+                    check_user = db['user'].find()
+                    if check_user[request_number]['username'] == session['username']:
+                        return flask.make_response(
+                            '<h2>Sie können Ihr eigenes Konto nicht berabeiten, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                            400)
                     if request.form['actions'] == 'rolle': # if administrator want to edit a role of a user
                         find_db = db['user'].find()  # get all users from ,,user"
                         username = find_db[request_number]['username']
