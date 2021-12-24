@@ -82,10 +82,26 @@ def check_status(user_role):
     return answer
 
 
+# return _id of current user
+def get_my_id():
+    db = connect_to_db()
+    findMe = db['user'].find({'username': session['username']})
+    myId = findMe[0]['_id']
+    return  myId
+
+
 # erstellt eine checkbox für ein fach (um sich als student für das fach anzumelden)
 # wird nur von "klausuren" benötigt, ist aber dennoch eine utility function
 def make_checkbox(fach):
-    return '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales[]" name="scales[]" value="' + str(fach) + '"></div>'
+    db = connect_to_db()
+    find_db = db['klausuren'].find({'subject': fach})
+    students = find_db[0]
+    list =  students['registered_students']
+    if get_my_id() in list:
+        status = 'checked'
+    else:
+        status = ' '
+    return '<div><label for="scales">angemeldet: </label><input type="checkbox" id="scales[]" name="scales[]" ' + status + ' value="' + str(fach) + '"></div>'
 
 
 # lädt das dropdown menu auf der seite "p_noten"
@@ -286,17 +302,27 @@ def klausuren():
 @app.route('/anmelden', methods = ['POST'])
 def anmelden():
     checkboxes = request.form.getlist('scales[]')
-    #print(checkboxes)
-    # insert checked subjects into db
     db   = connect_to_db()
-    user = db['user'].find({'username': session['username']})[0]
-    #print(user)
-    # for each subject in checkboxes do
-    for subject in checkboxes:
-        db_subject = db['klausuren'].find({'subject': subject})
-        db.klausuren.update({'subject': subject}, {'$push': {'registered_students': user['_id']} })
+    registered = []
+    find_klausuren = db['klausuren'].find()
+    for klausur in find_klausuren:
+        if get_my_id() in klausur['registered_students']:
+            registered.append(klausur['subject'])
+    toRegister = []
+    for checked in checkboxes:
+        if checked not in registered:
+            toRegister.append(checked)
+    # insert checked subjects into db
+    for register in toRegister:
+        db['klausuren'].update_one({'subject': register}, {'$push': {'registered_students': get_my_id()}})
+    toCancel = []
+    for obj_registered in registered:
+        if obj_registered not in checkboxes:
+            toCancel.append(obj_registered)
+    # delete unchecked subjects from db
+    for cancel in toCancel:
+        db['klausuren'].update_one({'subject': cancel}, {'$pull': {'registered_students': get_my_id()}})
     return flask.redirect("/klausuren")
-
 
 
 # PROFESSOR
