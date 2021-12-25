@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import time
 from flask import Flask, request
 import pymongo
 from pymongo import MongoClient
@@ -8,10 +9,14 @@ import re
 import os
 from flask import send_file
 from datetime import datetime
+from datetime import timedelta
 
 # GLOBALS
 db = None
 app = Flask(__name__)
+
+# auto logout in 10 minutes
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
 
 # UTILITY-FUNCTIONS
 def readhtml(filename):
@@ -162,6 +167,8 @@ def validate():
                 return flask.redirect("/professor")
             elif(session['role'] == 'Administrator'):
                 return flask.redirect("/administrator")
+    # delay after entering wrong login data
+    time.sleep(2)
     return flask.redirect("/")
 
 
@@ -184,15 +191,18 @@ def register():
         col           = db['user']
         find_email    = col.find( {'email': email} )
         if len(list(find_email)) > 0: # check ob die E-mail-Adresse in der Datenbank bereits existiert
-            return flask.make_response('<h2>Diese E-Mail-Adresse ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einer anderen E-Mail-Adresse.</h2>', 409)
+            return flask.make_response('<h2>Diese E-Mail-Adresse ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einer anderen E-Mail-Adresse.</h2>',
+                                       409)
         find_username = col.find({'username': benutzername})
         if len(list(find_username)) > 0: # check ob der Benutzername in der Datenbank bereits existiert
             return flask.make_response(
-                '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>', 409)
+                '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>',
+                409)
         else:
             x = col.insert_one(result) # Ansonsten den neuen Nutzer hinzufügen
             return flask.make_response(
-                '<h2>Sie haben sich erfolgreich registriert, melden Sie sich bitte <a href="/">hier</a> an.</h2>', 201)
+                '<h2>Sie haben sich erfolgreich registriert, melden Sie sich bitte <a href="/">hier</a> an.</h2>',
+                201)
     return flask.redirect("/")
 
 
@@ -502,12 +512,12 @@ def benutzer_action():
                         404)
                 else:
                     request_number = int(request.form['nummer']) - 1
-                    check_user = db['user'].find()
-                    if check_user[request_number]['username'] == session['username']:
-                        return flask.make_response(
-                            '<h2>Sie können Ihr eigenes Konto nicht berabeiten, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
-                            400)
                     if request.form['actions'] == 'rolle': # if administrator want to edit a role of a user
+                        check_user = db['user'].find()
+                        if check_user[request_number]['username'] == session['username']:
+                            return flask.make_response(
+                                '<h2>Sie können Ihre eigene Rolle nicht berabeiten, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                                400)
                         find_db = db['user'].find()  # get all users from ,,user"
                         username = find_db[request_number]['username']
                         role = find_db[request_number]['role']
@@ -536,6 +546,11 @@ def benutzer_action():
                             302)
 
                     elif request.form['actions'] == 'loeschen': # if administrator want to delete a user...
+                        check_user = db['user'].find()
+                        if check_user[request_number]['username'] == session['username']:
+                            return flask.make_response(
+                                '<h2>Sie können Ihr eigenes Konto nicht löschen, versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                                400)
                         find_db  = db['user'].find()  # get all users from ,,user"
                         username = find_db[request_number]['username']
                         # return response for more information and to verify the administrator's identity
@@ -590,7 +605,7 @@ def rolle_zuweisen():
                         400)
             else:
                 return flask.make_response(
-                    '<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                    '<h2>Ihr Benutzername oder Passwort haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
                     403)
         return flask.make_response(
             '<h2>Die Rolle konnte nicht aktualisiert werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
@@ -632,7 +647,7 @@ def passwort_ersetzen():
                         400)
             else:
                 return flask.make_response(
-                    '<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                    '<h2>Ihr Benutzername oder Passwort haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
                     403)
         return flask.make_response(
             '<h2>Das Passwort konnte nicht aktualisiert werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
@@ -675,7 +690,7 @@ def benutzer_loeschen():
                         400)
             else:
                 return flask.make_response(
-                    '<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                    '<h2>Ihr Benutzername oder Passwort haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
                     403)
         return flask.make_response(
             '<h2>Das Konto konnte nicht gelöscht werden. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
@@ -815,7 +830,7 @@ def note_loeschen():
                         400)
             else:
                 return flask.make_response(
-                    '<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
+                    '<h2>Ihr Benutzername oder Passwort haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
                     403)
         return flask.make_response(
             '<h2>Die Aktion wurde nicht erfolgreich ausgeführt. Versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
@@ -860,7 +875,7 @@ def note_bearbeiten():
                         400)
             else:
                 return flask.make_response(
-                    '<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
+                    '<h2>Ihr Benutzername oder Passwort haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
                     403)
         return flask.make_response(
             '<h2>Die Aktion wurde nicht erfolgreich ausgeführt. Versuchen Sie bitte <a href="/notenverwaltung">hier</a> noch einmal.</h2>',
@@ -986,7 +1001,7 @@ def fach_zuweisen():
                         404)
             else:
                 return flask.make_response(
-                    '<h2>Ihr Benutzername oder Password haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>',
+                    '<h2>Ihr Benutzername oder Passwort haben Sie nicht richtig eingegeben. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>',
                     403)
         return flask.make_response(
             '<h2>Die Aktion wurde nicht erfolgreich ausgeführt. Versuchen Sie bitte <a href="/faecherverwaltung">hier</a> noch einmal.</h2>',
