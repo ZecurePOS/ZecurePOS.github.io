@@ -354,29 +354,35 @@ def professor():
 def insert_grades():
     if check_status('Professor') != 200:  # if not logged in as professor
         return check_status('Professor')
-    db = connect_to_db()
     if request.method=='POST':
-        grades = request.form.getlist('grades[]')
-        # get the relevant data
-        counter = 0
-        klausur = db['klausuren'].find({'prof_id': get_my_id(), 'subject': session['subject']})[0]
-        for reg_student_id in klausur['registered_students']:
-            students = db['user'].find({'_id': reg_student_id})  # get the student object
-            for student in students:
-                noten = db['noten'].find({'stud_id': student['_id'], 'subject': session['subject']})
-                if len(list(noten)) < 1: # check if a grade for the student already exists
-                    # prepare new grade to insert
-                    newDocument =  {
-                        'subject': session['subject'],
-                        'mark': grades[counter],
-                        'prof_id': get_my_id(),
-                        'stud_id': student['_id'],
-                        'date': datetime.now() # date = current date
-                    }
-                    # insert new grade for student into database
-                    db['noten'].insert_one(newDocument)
-                    counter = counter + 1
+        if request.form.get('scales') == 'on':
+            db = connect_to_db()
+            grades = request.form.getlist('grades[]')
+            # get the relevant data
+            counter = 0
+            klausur = db['klausuren'].find({'prof_id': get_my_id(), 'subject': session['subject']})[0]
+            for reg_student_id in klausur['registered_students']:
+                students = db['user'].find({'_id': reg_student_id})  # get the student object
+                for student in students:
+                    noten = db['noten'].find({'stud_id': student['_id'], 'subject': session['subject']})
+                    if len(list(noten)) < 1: # check if a grade for the student already exists
+                        # prepare new grade to insert
+                        newDocument =  {
+                            'subject': session['subject'],
+                            'mark': grades[counter],
+                            'prof_id': get_my_id(),
+                            'stud_id': student['_id'],
+                            'date': datetime.now() # date = current date
+                        }
+                        # insert new grade for student into database
+                        db['noten'].insert_one(newDocument)
+                        counter = counter + 1
+        else:
+            return flask.make_response(
+                '<h2>Um die Noten zu speichern, müssen Sie die Richtigkeit der Noten bestätigen, versuchen Sie bitte <a href="/p_noten">hier</a> noch einmal.</h2>',
+                400)
     return flask.redirect("/p_noten")
+
 
 
 # lädt alle noten der studis, die für das mit dem dropdown menu ausgewählte fach angemeldet sind, so dass der professor dort die noten eintragen kann
