@@ -10,6 +10,7 @@ import os
 from flask import send_file
 from datetime import datetime
 from datetime import timedelta
+from flask_swagger_ui import get_swaggerui_blueprint
 
 # GLOBALS
 db = None
@@ -17,6 +18,21 @@ app = Flask(__name__)
 
 # auto logout in 10 minutes
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
+
+
+SWAGGER_URL = '/swagger'
+API_URL = '/static/swagger.json'
+SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+    SWAGGER_URL,
+    API_URL,
+    config={
+        'app_name': "ZecurePOS.github.io"
+    }
+)
+app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+### end swagger specific ###
+
+
 
 # UTILITY-FUNCTIONS
 def readhtml(filename):
@@ -246,6 +262,8 @@ def noteneinsicht():
 # student kann seine noten herunterladen (lädt noten aller studenten herunter)
 @app.route('/download_pdf', methods = ['POST'])
 def download_pdf():
+    if check_status('Student') != 200:  # if not logged in as professor
+        return check_status('Student')
     db = connect_to_db()
     # generate preamble
     preamble = r'''
@@ -312,6 +330,8 @@ def klausuren():
 # übermittelt die daten von backend in die db
 @app.route('/anmelden', methods = ['POST'])
 def anmelden():
+    if check_status('Student') != 200:  # if not logged in as professor
+        return check_status('Student')
     checkboxes = request.form.getlist('scales[]')
     db   = connect_to_db()
     registered = []
@@ -896,27 +916,26 @@ def note_bearbeiten():
 def faecherverwaltung():
     # user can only open subject management if he is logged in as an administrator.
     if check_status('Administrator') == 200:
-        if check_status('Administrator') == 200:
-            file    = readhtml('administrator_faecher.html')
-            db       = connect_to_db()
-            string   = ''
-            line    = 0
-            find_db  = db['klausuren'].find({"subject": {"$exists": True}})  # get all subjects from ,,klausur"
-            for obj_fach in find_db:
-                if obj_fach is None:
+        file    = readhtml('administrator_faecher.html')
+        db       = connect_to_db()
+        string   = ''
+        line    = 0
+        find_db  = db['klausuren'].find({"subject": {"$exists": True}})  # get all subjects from ,,klausur"
+        for obj_fach in find_db:
+            if obj_fach is None:
+                break
+            subject = obj_fach['subject']
+            line   = line + 1
+            profs   = db['user'].find({'_id': obj_fach['prof_id']}) # get profId from ,,user"
+            for obj_user in profs:
+                if obj_user is None:
                     break
-                subject = obj_fach['subject']
-                line   = line + 1
-                profs   = db['user'].find({'_id': obj_fach['prof_id']}) # get profId from ,,user"
-                for obj_user in profs:
-                    if obj_user is None:
-                        break
-                    prof = obj_user['username']
-                string += '<tr><td>' + str(line) + '</td><td>' + subject + '</td><td>' + prof + '</td></tr>'
-            file = re.sub('</tr>', '</tr>' + string, file)  # fill the table with content
-        else:
-            file = check_status('Administrator')
-        return file
+                prof = obj_user['username']
+            string += '<tr><td>' + str(line) + '</td><td>' + subject + '</td><td>' + prof + '</td></tr>'
+        file = re.sub('</tr>', '</tr>' + string, file)  # fill the table with content
+    else:
+        file = check_status('Administrator')
+    return file
 
 
 # subject management actions
