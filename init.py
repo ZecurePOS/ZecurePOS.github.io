@@ -169,8 +169,8 @@ def init():
 def validate():
     db = connect_to_db()
     if request.method=='POST':
-        email   = request.form['email']
-        pw      = hash_passwd( request.form['passwd'] )
+        email   = request.form.get('email')
+        pw      = hash_passwd( request.form.get('passwd'))
         col     = db['user']
         find_db = col.find( {'email': email, 'passwd': pw} )
         for user in find_db:

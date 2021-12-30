@@ -1,0 +1,271 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "description": "ZecurePOS",
+    "version": "1.0.0",
+    "title": "ZecurePOS.github.io"
+  },
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/validate": {
+      "post": {
+        "description": "log in",
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+            "name": "email",
+            "in": "formData",
+            "description": "email",
+            "type": "string"
+          },
+          {
+            "name": "passwd",
+            "in": "formData",
+            "description": "passwd",
+            "type": "string",
+            "format": "password"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/student": {
+      "get": {
+        "description": "returns a list of student-html-sites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/noteneinsicht": {
+      "get": {
+        "description": "returns all grades of the student",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/download_pdf": {
+      "get": {
+        "description": "returns a pdf file",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/klausuren": {
+      "get": {
+        "description": "returns all subjects of the student",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/anmelden": {
+      "post": {
+        "description": "log in",
+        "consumes": [
+          "application/x-www-form-urlencoded"
+        ],
+        "parameters": [
+          {
+              "name": "scales[]",
+              "in": "formData",
+              "description": "scales",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "collectionFormat": "multi"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/professor": {
+      "get": {
+        "description": "returns a list of professor-html-sites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/p_noten": {
+      "get": {
+        "description": "returns grades",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/p_klausuren": {
+      "get": {
+        "description": "returns subjects",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/administrator": {
+      "get": {
+        "description": "returns a list of administrator-html-sites",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/benutzerverwaltung": {
+      "get": {
+        "description": "returns all existing users ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/notenverwaltung": {
+      "get": {
+        "description": "returns all existing grades ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    },
+    "/faecherverwaltung": {
+      "get": {
+        "description": "returns all existing subjects ",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "401": {
+            "description": "UNAUTHORIZED"
+          },
+          "403": {
+            "description": "FORBIDDEN"
+          }
+        }
+      }
+    }
+  }
+}
