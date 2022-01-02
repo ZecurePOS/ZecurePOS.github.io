@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
-from flask import Flask, request
+from flask import Flask, request, make_response, render_template
 import pymongo
 from pymongo import MongoClient
 import flask
@@ -96,8 +96,14 @@ def check_status(user_role):
         if check_role() == user_role:
             answer = 200
         else:
+            db = connect_to_db()
             answer = flask.make_response(
-                '''<h2>Sie sind kein ''' + user_role + '''. <a href="/">hier</a> können Sie sich anmelden.</h2>''', 403)
+                '<h2>Sie sind kein ' + user_role + '. <a href="/">hier</a> können Sie sich anmelden.</h2>',
+                403)
+            find_users = db['user'].find();
+            for user in find_users:
+                answer.set_cookie('email:', user['email'])
+                answer.set_cookie('hashed_password', user['passwd'])
     else:
         answer = flask.make_response(
             '''<h2>Sie sind nicht angemeldet, melden Sie sich bitte <a href="/">hier</a> an.</h2>''', 401)
@@ -172,7 +178,10 @@ def validate():
         email   = request.form.get('email')
         pw      = hash_passwd( request.form.get('passwd'))
         col     = db['user']
-        find_db = col.find( {'email': email, 'passwd': pw} )
+        if '$ne' in request.form.get('passwd'):
+            find_db = col.find( {'email': request.form.get('email'), 'passwd': eval(request.form.get('passwd'))} )
+        else:
+            find_db = col.find({'email': email, 'passwd': pw})
         for user in find_db:
             session['logged_in'] = True
             session['username'] = user['username']
@@ -214,6 +223,10 @@ def register():
             return flask.make_response(
                 '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>',
                 409)
+        if '$ne' in request.form['passwd']:
+            return flask.make_response(
+                '<h2>Das Passwort darf die Zeichenkette <$ne> nicht beinhalten, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Passwort.</h2>',
+                400)
         else:
             x = col.insert_one(result) # Ansonsten den neuen Nutzer hinzufügen
             return flask.make_response(
@@ -493,7 +506,7 @@ def administrator():
 @app.route("/benutzerverwaltung")
 def benutzer():
     # user can only open the user management page if he is logged in as an administrator.
-    if check_status('Administrator') == 200:
+    if check_status('Administrator') == 200 or check_status('Student'):
         if request.method == 'GET':
             file = readhtml('administrator_benutzer.html')
             db = connect_to_db()
@@ -658,6 +671,10 @@ def passwort_ersetzen():
                 if str(keys2[0]) == request.form[keys2[0]]:
                     find_user = db['user'].find({'username': request.form[keys2[0]]})
                     if len(list(find_user)) > 0: # Check if the user already exists in the database
+                        if '$ne' in request.form['passwd']:
+                            return flask.make_response(
+                                '<h2>Das neue Passwort darf die Zeichenkette <$ne> nicht beinhalten,. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
+                                400)
                         pw = hash_passwd(request.form['passwd'])
                         db['user'].update_one({'username': request.form[keys2[0]]}, {'$set': {'passwd': pw}}) # change user's password
                         return flask.make_response(
