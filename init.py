@@ -282,6 +282,8 @@ def download_pdf():
     studis = db['user'].find({'role': 'Student'})
     # for each studi get username and grade
     # this is not nice code but it is necessary because our db model sucks
+    last_line = r''''''
+    line = r''''''
     for studi in studis:
         for subj in db['klausuren'].find():
             for reg_student in subj['registered_students']:
@@ -290,9 +292,15 @@ def download_pdf():
                     for grade in grades:
                         #print(grade)
                         # generate latex-table from matrikelnr (which is username), subject and grade
-                        table += studi['username'] + r''' & ''' + subj['subject'] + r''' & ''' + str(grade['mark']) + r'''\\ '''
+                        line = studi['username'] + r''' & ''' + subj['subject'] + r''' & ''' + str(grade['mark']) + r'''\\ '''
+                        if line != last_line:
+                            last_line = line
+                            table += line
     # bake tex file
     tex_file = preamble + table + ending
+    # create latex folder if it doesnt exist
+    if not os.path.isdir('latex'):
+        os.mkdir('latex')
     # write out
     file = open('latex/'+session['username']+'_noten.tex', 'w')
     file.write(tex_file)
