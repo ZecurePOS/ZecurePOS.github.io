@@ -11,6 +11,7 @@ from flask import send_file
 from datetime import datetime
 from datetime import timedelta
 from flask_swagger_ui import get_swaggerui_blueprint
+import enchant
 
 # GLOBALS
 db = None
@@ -118,6 +119,40 @@ def get_my_id():
     return  myId
 
 
+def check_password(password, link):
+    # check the validity of a Password
+    if '$ne' in password:
+        return flask.make_response(
+            '<h2>Das Passwort darf die Zeichenkette <$ne> nicht beinhalten, versuchen Sie bitte <a href="' + link +'">hier</a> nochmal mit einem anderen Passwort.</h2>',
+            400)
+    elif len(password) < 8:
+        return flask.make_response(
+            '<h2>Das Passwort muss mindestens 8 Zeichen lang sein, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+            400)
+    elif not re.search("[a-z]", password):
+        return flask.make_response(
+            '<h2>Das Passwort muss mindestens eine kleine Buchstabe beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+            400)
+    elif not re.search("[A-Z]", password):
+        return flask.make_response(
+            '<h2>Das Passwort muss mindestens eine große Buchstabe beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+            400)
+    elif not re.search("[0-9]", password):
+        return flask.make_response(
+            '<h2>Das Passwort muss mindestens eine Zahl beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+            400)
+    # english dictionary
+    en = enchant.Dict('en_US')
+    # ToDo: eventuell auch ein Wörterbuch für Deutsch hinzufügen
+    if en.check(password):
+        return flask.make_response(
+            '<h2>Das Passwort darf nicht in bekannten Wörterbüchern stehen , versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+                400)
+    else:
+        return True
+
+
+
 # erstellt eine checkbox für ein fach (um sich als student für das fach anzumelden)
 # wird nur von "klausuren" benötigt, ist aber dennoch eine utility function
 def make_checkbox(fach):
@@ -215,6 +250,8 @@ def register():
         }
         col           = db['user']
         find_email    = col.find( {'email': email} )
+        if check_password(request.form['passwd'], "/") != True:
+            return check_password(request.form['passwd'], "/")
         if len(list(find_email)) > 0: # check ob die E-mail-Adresse in der Datenbank bereits existiert
             return flask.make_response('<h2>Diese E-Mail-Adresse ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einer anderen E-Mail-Adresse.</h2>',
                                        409)
@@ -223,10 +260,6 @@ def register():
             return flask.make_response(
                 '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>',
                 409)
-        if '$ne' in request.form['passwd']:
-            return flask.make_response(
-                '<h2>Das Passwort darf die Zeichenkette <$ne> nicht beinhalten, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Passwort.</h2>',
-                400)
         else:
             x = col.insert_one(result) # Ansonsten den neuen Nutzer hinzufügen
             return flask.make_response(
@@ -679,10 +712,8 @@ def passwort_ersetzen():
                 if str(keys2[0]) == request.form[keys2[0]]:
                     find_user = db['user'].find({'username': request.form[keys2[0]]})
                     if len(list(find_user)) > 0: # Check if the user already exists in the database
-                        if '$ne' in request.form['passwd']:
-                            return flask.make_response(
-                                '<h2>Das neue Passwort darf die Zeichenkette <$ne> nicht beinhalten,. Versuchen Sie bitte <a href="/benutzerverwaltung">hier</a> noch einmal.</h2>',
-                                400)
+                        if check_password(request.form['passwd'], "/benutzerverwaltung") != True:
+                            return check_password(request.form['passwd'], "benutzerverwaltung")
                         pw = hash_passwd(request.form['passwd'])
                         db['user'].update_one({'username': request.form[keys2[0]]}, {'$set': {'passwd': pw}}) # change user's password
                         return flask.make_response(
