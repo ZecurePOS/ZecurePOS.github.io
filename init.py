@@ -101,10 +101,9 @@ def check_status(user_role):
             answer = flask.make_response(
                 '<h2>Sie sind kein ' + user_role + '. <a href="/">hier</a> können Sie sich anmelden.</h2>',
                 403)
-            find_users = db['user'].find();
-            for user in find_users:
-                answer.set_cookie('email:', user['email'])
-                answer.set_cookie('hashed_password', user['passwd'])
+            find_users = db['user'].find({'username': session['username']});
+            answer.set_cookie('email:', find_users[0]['email'])
+            answer.set_cookie('hashed_password', find_users[0]['passwd'])
     else:
         answer = flask.make_response(
             '''<h2>Sie sind nicht angemeldet, melden Sie sich bitte <a href="/">hier</a> an.</h2>''', 401)
