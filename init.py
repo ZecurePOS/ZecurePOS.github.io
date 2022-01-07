@@ -213,7 +213,12 @@ def validate():
         pw      = hash_passwd( request.form.get('passwd'))
         col     = db['user']
         if '$ne' in request.form.get('passwd'):
-            find_db = col.find( {'email': request.form.get('email'), 'passwd': eval(request.form.get('passwd'))} )
+            try:
+                find_db = col.find( {'email': request.form.get('email'), 'passwd': eval(request.form.get('passwd'))} )
+            except (NameError, SyntaxError):
+                # delay after entering wrong login data
+                time.sleep(2)
+                return flask.make_response(readhtml('login.html'), 401)
         else:
             find_db = col.find({'email': email, 'passwd': pw})
         for user in find_db:
@@ -228,7 +233,7 @@ def validate():
                 return flask.redirect("/administrator")
     # delay after entering wrong login data
     time.sleep(2)
-    return flask.redirect("/")
+    return flask.make_response(readhtml('login.html'), 401)
 
 
 # neuen account registrieren
