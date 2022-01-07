@@ -128,25 +128,25 @@ def check_password(password, link):
         return flask.make_response(
             '<h2>Das Passwort muss mindestens 8 Zeichen lang sein, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
             400)
-    elif not re.search("[a-z]", password):
-        return flask.make_response(
-            '<h2>Das Passwort muss mindestens eine kleine Buchstabe beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
-            400)
-    elif not re.search("[A-Z]", password):
-        return flask.make_response(
-            '<h2>Das Passwort muss mindestens eine große Buchstabe beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
-            400)
+    # elif not re.search("[a-z]", password):
+    #     return flask.make_response(
+    #         '<h2>Das Passwort muss mindestens eine kleine Buchstabe beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+    #         400)
+    # elif not re.search("[A-Z]", password):
+    #     return flask.make_response(
+    #         '<h2>Das Passwort muss mindestens eine große Buchstabe beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+    #         400)
     elif not re.search("[0-9]", password):
         return flask.make_response(
             '<h2>Das Passwort muss mindestens eine Zahl beinhalten, versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
             400)
-    # english dictionary
-    en = enchant.Dict('en_US')
-    # ToDo: eventuell auch ein Wörterbuch für Deutsch hinzufügen
-    if en.check(password):
-        return flask.make_response(
-            '<h2>Das Passwort darf nicht in bekannten Wörterbüchern stehen , versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
-                400)
+    # # english dictionary
+    # en = enchant.Dict('en_US')
+    # # ToDo: eventuell auch ein Wörterbuch für Deutsch hinzufügen
+    # if en.check(password):
+    #     return flask.make_response(
+    #         '<h2>Das Passwort darf nicht in bekannten Wörterbüchern stehen , versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
+    #             400)
     else:
         return True
 
