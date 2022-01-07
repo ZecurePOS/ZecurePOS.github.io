@@ -246,6 +246,7 @@ def register():
             email         = request.form['email']
             benutzername  = request.form['user']
             pw            = hash_passwd( request.form['passwd'] )
+            pwConfirm = hash_passwd(request.form['passwdConfirm'])
             studiengang   = request.form['actions']
             result = {
                 "email"   : email,
@@ -256,6 +257,10 @@ def register():
             }
             col           = db['user']
             find_email    = col.find( {'email': email} )
+            if pw != pwConfirm:
+                return flask.make_response(
+                    '<h2>Die Passwort-Wiederholung muss mit dem eingegebenen Passwort übereinstimmen, versuchen Sie bitte <a href="/">hier</a> nochmal</h2>',
+                    400)
             if check_password(request.form['passwd'], "/") != True:
                 return check_password(request.form['passwd'], "/")
             if len(list(find_email)) > 0: # check ob die E-mail-Adresse in der Datenbank bereits existiert
