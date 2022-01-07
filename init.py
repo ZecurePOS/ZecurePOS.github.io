@@ -12,6 +12,7 @@ from datetime import datetime
 from datetime import timedelta
 from flask_swagger_ui import get_swaggerui_blueprint
 import enchant
+from werkzeug.exceptions import BadRequestKeyError
 
 # GLOBALS
 db = None
@@ -241,34 +242,39 @@ def validate():
 def register():
     db = connect_to_db()
     if request.method=='POST':
-        email         = request.form['email']
-        benutzername  = request.form['user']
-        pw            = hash_passwd( request.form['passwd'] )
-        studiengang   = request.form['actions']
-        result = {
-            "email"   : email,
-            "passwd"  : pw,
-            "username": benutzername,
-            "role"    : "Student",
-            "faculty" : studiengang
-        }
-        col           = db['user']
-        find_email    = col.find( {'email': email} )
-        if check_password(request.form['passwd'], "/") != True:
-            return check_password(request.form['passwd'], "/")
-        if len(list(find_email)) > 0: # check ob die E-mail-Adresse in der Datenbank bereits existiert
-            return flask.make_response('<h2>Diese E-Mail-Adresse ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einer anderen E-Mail-Adresse.</h2>',
-                                       409)
-        find_username = col.find({'username': benutzername})
-        if len(list(find_username)) > 0: # check ob der Benutzername in der Datenbank bereits existiert
+        try:
+            email         = request.form['email']
+            benutzername  = request.form['user']
+            pw            = hash_passwd( request.form['passwd'] )
+            studiengang   = request.form['actions']
+            result = {
+                "email"   : email,
+                "passwd"  : pw,
+                "username": benutzername,
+                "role"    : "Student",
+                "faculty" : studiengang
+            }
+            col           = db['user']
+            find_email    = col.find( {'email': email} )
+            if check_password(request.form['passwd'], "/") != True:
+                return check_password(request.form['passwd'], "/")
+            if len(list(find_email)) > 0: # check ob die E-mail-Adresse in der Datenbank bereits existiert
+                return flask.make_response('<h2>Diese E-Mail-Adresse ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einer anderen E-Mail-Adresse.</h2>',
+                                           409)
+            find_username = col.find({'username': benutzername})
+            if len(list(find_username)) > 0: # check ob der Benutzername in der Datenbank bereits existiert
+                return flask.make_response(
+                    '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>',
+                    409)
+            else:
+                x = col.insert_one(result) # Ansonsten den neuen Nutzer hinzufügen
+                return flask.make_response(
+                    '<h2>Sie haben sich erfolgreich registriert, melden Sie sich bitte <a href="/">hier</a> an.</h2>',
+                    201)
+        except BadRequestKeyError:
             return flask.make_response(
-                '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>',
-                409)
-        else:
-            x = col.insert_one(result) # Ansonsten den neuen Nutzer hinzufügen
-            return flask.make_response(
-                '<h2>Sie haben sich erfolgreich registriert, melden Sie sich bitte <a href="/">hier</a> an.</h2>',
-                201)
+                '<h2>Sie müssen einen Studiengang auswählen, versuchen Sie bitte <a href="/">hier</a> nochmal</h2>',
+                400)
     return flask.redirect("/")
 
 
