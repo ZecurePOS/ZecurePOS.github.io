@@ -48,7 +48,7 @@ def readhtml(filename):
 def connect_to_db():
     global db
     if db is None:
-        CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@149.172.144.70:27018'
+        CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@149.172.147.39:27018'
         client            = MongoClient( CONNECTION_STRING )
         db                = client[ 'sse' ]
     return db
