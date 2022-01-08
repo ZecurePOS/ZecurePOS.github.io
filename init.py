@@ -54,6 +54,28 @@ def connect_to_db():
         db                = client[ 'sse' ]
     return db
 
+
+# how create a backup?
+# 1. create a database in Mongo
+# 2. create 4 collections: <klausuren>, <noten>, <studiengang> and <user>
+# 3. copy the name of database
+# 4. send the name to this method
+# PS: don't use the same name for more than backup
+def create_backup(backup_name):
+    CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@149.172.147.39:27018'
+    client = MongoClient(CONNECTION_STRING)
+    backup = client[backup_name]
+    klausuren = db['klausuren'].find()
+    noten = db['noten'].find()
+    studiengang = db['studiengang'].find()
+    user = db['user'].find()
+    backup['klausuren'].insert_many(list(klausuren))
+    backup['noten'].insert_many(list(noten))
+    backup['studiengang'].insert_many(list(studiengang))
+    backup['user'].insert_many(list(user))
+
+
+
 def hash_passwd(text):
     result = ""
     for i in range(len(text)):
@@ -143,13 +165,13 @@ def check_password(password, link):
             400)
     # # english dictionary
     # en = enchant.Dict('en_US')
-    # # ToDo: eventuell auch ein Wörterbuch für Deutsch hinzufügen
     # if en.check(password):
     #     return flask.make_response(
     #         '<h2>Das Passwort darf nicht in bekannten Wörterbüchern stehen , versuchen Sie bitte <a href="' + link + '">hier</a> nochmal mit einem anderen Passwort.</h2>',
     #             400)
     else:
         return True
+
 
 
 
