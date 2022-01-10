@@ -22,16 +22,16 @@ app = Flask(__name__)
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
 
 
-SWAGGER_URL = '/swagger'
-API_URL = '/static/swagger.json'
-SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
-    SWAGGER_URL,
-    API_URL,
-    config={
-        'app_name': "ZecurePOS.github.io"
-    }
-)
-app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
+# SWAGGER_URL = '/swagger'
+# API_URL = '/static/swagger.json'
+# SWAGGERUI_BLUEPRINT = get_swaggerui_blueprint(
+#     SWAGGER_URL,
+#     API_URL,
+#     config={
+#         'app_name': "ZecurePOS.github.io"
+#     }
+# )
+# app.register_blueprint(SWAGGERUI_BLUEPRINT, url_prefix=SWAGGER_URL)
 ### end swagger specific ###
 
 
