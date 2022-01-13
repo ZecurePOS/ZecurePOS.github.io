@@ -13,10 +13,14 @@ from datetime import timedelta
 from flask_swagger_ui import get_swaggerui_blueprint
 import enchant
 from werkzeug.exceptions import BadRequestKeyError
+from flask_script import Manager, Server
+
 
 # GLOBALS
 db = None
 app = Flask(__name__)
+manager = Manager(app)
+manager.add_command('runserver', Server(port=1337, debug=False, ssl_context='adhoc', host='localhost'))
 
 # auto logout in 10 minutes
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(minutes=10)
@@ -1142,4 +1146,4 @@ def logout():
 
 # START
 if __name__ == '__main__':
-    app.run(port=1337, debug=True, ssl_context='adhoc', host='192.168.0.137')
+    manager.run()
