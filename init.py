@@ -293,7 +293,7 @@ def register():
                 return flask.make_response(
                     '<h2>Dieser Benutzername ist bereits registriert, versuchen Sie bitte <a href="/">hier</a> nochmal mit einem anderen Benutzername.</h2>',
                     409)
-            if re.search("[#?!@$%^&*-<>]", request.form['user']):
+            if re.search("[#?!@$%^&*-]", request.form['user']):
                 return flask.make_response(
                     '<h2>Benutzername darf nur aus Zahlen und/oder Buchstaben bestehen.</h2>',
                     409)
