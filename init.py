@@ -49,7 +49,7 @@ def readhtml(filename):
 def connect_to_db():
     global db
     if db is None:
-        CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@149.172.147.39:27018'
+        CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@localhost:27018'
         client            = MongoClient( CONNECTION_STRING )
         db                = client[ 'sse' ]
     return db
@@ -62,7 +62,7 @@ def connect_to_db():
 # 4. send the name to this method
 # PS: don't use the same name for more than backup
 def create_backup(backup_name):
-    CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@149.172.147.39:27018'
+    CONNECTION_STRING = 'mongodb://Nagel:xL8NyJYnnKkuBM4WaVz8NVsGTg@localhost:27018'
     client = MongoClient(CONNECTION_STRING)
     backup = client[backup_name]
     klausuren = db['klausuren'].find()
@@ -1142,4 +1142,4 @@ def logout():
 
 # START
 if __name__ == '__main__':
-    app.run(port=1337, debug=True, ssl_context='adhoc')
+    app.run(port=1337, debug=True, ssl_context='adhoc', host='192.168.0.137')
